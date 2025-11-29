@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Creator Backoffice{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Approval Requests</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-clipboard-check"></i> {{ title }}
+            </h2>
+            <div class="action-buttons">
+                <a href="{% url 'approvals:create_request' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> New Request
+                </a>
+                {% if not is_editor %}
+                    <a href="{% url 'approvals:request_history' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-clock-history"></i> History
+                    </a>
+                    <a href="{% url 'approvals:pending_approvals' %}" class="btn btn-outline-warning">
+                        <i class="bi bi-clock"></i> Pending
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if requests %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Submitted By</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Reviewed By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in requests %}
+                                    <tr data-href="{% url 'approvals:request_detail' request.pk %}">
+                                        <td>
+                                            <i class="bi bi-file-play text-danger file-icon"></i>
+                                            <strong>{{ request.file.name }}</strong>
+                                            {% if request.description %}
+                                                <br>
+                                                <small class="text-muted">
+                                                    {{ request.description|truncatewords:10 }}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <i class="bi bi-person"></i> {{ request.editor.username }}
+                                        </td>
+                                        <td>
+                                            {% if request.status == 'pending' %}
+                                                <span class="status-indicator pending"></span>
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            {% elif request.status == 'approved' %}
+                                                <span class="status-indicator approved"></span>
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif request.status == 'rejected' %}
+                                                <span class="status-indicator rejected"></span>
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif request.status == 'uploaded' %}
+                                                <span class="status-indicator uploaded"></span>
+                                                <span class="badge bg-info">Uploaded</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span data-bs-toggle="tooltip" title="{{ request.created_at|date:'F d, Y H:i:s' }}">
+                                                {{ request.created_at|date:"M d, Y" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if request.reviewed_by %}
+                                                <i class="bi bi-person-check"></i> {{ request.reviewed_by.username }}
+                                                <br>
+                                                <small class="text-muted">{{ request.reviewed_at|date:"M d, Y" }}</small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'approvals:request_detail' request.pk %}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               data-bs-toggle="tooltip"
+                                               title="View request details">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-clipboard-x"></i>
+                </div>
+                <h3 class="empty-state-title">No Approval Requests</h3>
+                <p class="empty-state-description">
+                    {% if is_editor %}
+                        You haven't submitted any approval requests yet.
+                    {% else %}
+                        There are no approval requests from your team members yet.
+                    {% endif %}
+                </p>
+                {% if is_editor %}
+                <a href="{% url 'approvals:create_request' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create Your First Request
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

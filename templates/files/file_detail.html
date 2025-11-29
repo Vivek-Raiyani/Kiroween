@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ file.name }} - Creator Backoffice{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'files:file_list' %}">Files</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ file.name|truncatewords:5 }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+                <i class="bi {% if 'video' in file.mime_type %}bi-file-play text-danger{% elif 'image' in file.mime_type %}bi-file-image text-primary{% else %}bi-file-earmark{% endif %}"></i>
+                {{ file.name }}
+            </h3>
+            <div class="action-buttons">
+                {% if file.web_view_link %}
+                <a href="{{ file.web_view_link }}" 
+                   target="_blank" 
+                   class="btn btn-primary"
+                   data-bs-toggle="tooltip"
+                   title="Open this file in Google Drive">
+                    <i class="bi bi-box-arrow-up-right"></i> Open in Drive
+                </a>
+                {% endif %}
+                {% if can_delete %}
+                <a href="{% url 'files:file_delete' file.file_id %}" 
+                   class="btn btn-danger confirm-action"
+                   data-confirm-title="Delete File"
+                   data-confirm-message="Are you sure you want to delete '{{ file.name }}'? This action cannot be undone and will remove the file from Google Drive."
+                   data-confirm-text="Delete File"
+                   data-cancel-text="Cancel">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>File Information</h5>
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th style="width: 40%;">File ID</th>
+                                <td><code>{{ file.file_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Name</th>
+                                <td>{{ file.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>MIME Type</th>
+                                <td><span class="badge bg-secondary">{{ file.mime_type }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Size</th>
+                                <td>{{ file.get_size_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Modified</th>
+                                <td>{{ file.modified_time|date:"F d, Y H:i:s" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Cached At</th>
+                                <td>{{ file.cached_at|date:"F d, Y H:i:s" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Preview</h5>
+                    {% if file.web_view_link %}
+                    <div class="alert alert-info">
+                        <p>Preview is available in Google Drive.</p>
+                        <a href="{{ file.web_view_link }}" target="_blank" class="btn btn-sm btn-primary">
+                            View in Google Drive
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <p>Preview not available for this file.</p>
+                    </div>
+                    {% endif %}
+
+                    {% if 'video' in file.mime_type %}
+                    <div class="alert alert-success mt-3">
+                        <h6>Video File Detected</h6>
+                        <p class="mb-2">This file can be used for approval requests.</p>
+                        <a href="{% url 'approvals:create_request' %}" class="btn btn-sm btn-success">
+                            Create Approval Request
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'files:file_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Files
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

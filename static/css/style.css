@@ -1,0 +1,792 @@
+/* Creator Backoffice Platform - Apple x Manga Aesthetic */
+
+/* ============================================
+   CSS VARIABLES - Design System
+   ============================================ */
+:root {
+    /* Red & Black Theme */
+    --ink: #000000;
+    --paper: #FFFFFF;
+    --accent-red: #DC2626;
+    --accent-red-light: #EF4444;
+    --accent-red-dark: #B91C1C;
+    --accent-red-border: #FCA5A5;
+    --gray-wash: #F9FAFB;
+    --gray-medium: #6B7280;
+    --gray-dark: #111827;
+    
+    /* Manga-inspired */
+    --manga-border: 4px;
+    --comic-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+    --speed-line: linear-gradient(45deg, transparent 30%, rgba(0, 0, 0, 0.05) 30%, rgba(0, 0, 0, 0.05) 70%, transparent 70%);
+    
+    /* Spacing (Compact) */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 20px;
+    --space-xl: 32px;
+    
+    /* Typography */
+    --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    
+    /* Transitions */
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+    flex: 1;
+    padding: var(--space-md) 0;
+}
+
+/* ============================================
+   TYPOGRAPHY - Apple Style
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: var(--space-sm);
+}
+
+h1 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+}
+
+h2 {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+h3 {
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+}
+
+p {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+.text-muted {
+    color: var(--gray-medium) !important;
+}
+
+/* ============================================
+   NAVIGATION - Sleek & Minimal
+   ============================================ */
+.navbar {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: var(--space-xs) 0;
+    box-shadow: none;
+    transition: var(--transition-smooth);
+}
+
+.navbar-brand {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink) !important;
+    transition: var(--transition-fast);
+}
+
+.navbar-brand:hover {
+    transform: scale(1.02);
+}
+
+.nav-link {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--gray-dark) !important;
+    padding: 6px 12px !important;
+    border-radius: 8px;
+    transition: var(--transition-fast);
+    position: relative;
+}
+
+.nav-link:hover {
+    background: var(--gray-wash);
+    color: var(--accent-red) !important;
+}
+
+.nav-link.active {
+    background: var(--gray-wash);
+    color: var(--accent-red) !important;
+}
+
+/* ============================================
+   CARDS - Manga Panel Style
+   ============================================ */
+.card {
+    background: var(--paper);
+    border: 2px solid var(--accent-red-border);
+    border-radius: 12px;
+    box-shadow: 4px 4px 0 rgba(220, 38, 38, 0.15);
+    margin-bottom: var(--space-md);
+    transition: var(--transition-smooth);
+    overflow: hidden;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-red);
+    opacity: 0;
+    transition: var(--transition-fast);
+}
+
+.card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 rgba(220, 38, 38, 0.25);
+    border-color: var(--accent-red);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card-header {
+    background: var(--ink);
+    color: var(--paper);
+    border-bottom: 2px solid var(--accent-red);
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.card-body {
+    padding: var(--space-md);
+}
+
+.card-footer {
+    background: var(--gray-wash);
+    border-top: 2px solid var(--accent-red-border);
+    padding: var(--space-sm) var(--space-md);
+}
+
+/* ============================================
+   BUTTONS - Apple Style with Manga Flair
+   ============================================ */
+.btn {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 8px 16px;
+    border-radius: 980px;
+    border: none;
+    transition: var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    text-transform: none;
+    letter-spacing: -0.01em;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+.btn-primary {
+    background: var(--accent-red);
+    color: var(--paper);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-primary:hover {
+    background: var(--accent-red-dark);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: var(--accent-red-dark);
+    color: var(--paper);
+    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.3);
+}
+
+.btn-danger:hover {
+    background: #991B1B;
+    box-shadow: 0 6px 20px rgba(185, 28, 28, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: #34C759;
+    color: var(--paper);
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.btn-warning {
+    background: #FF9500;
+    color: var(--paper);
+    box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--accent-red);
+    color: var(--accent-red);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--accent-red);
+    color: var(--paper);
+}
+
+.btn-outline-danger {
+    border: 2px solid var(--accent-red-dark);
+    color: var(--accent-red-dark);
+    background: transparent;
+}
+
+.btn-outline-danger:hover {
+    background: var(--accent-red-dark);
+    color: var(--paper);
+}
+
+/* ============================================
+   TABLES - Clean Data Display
+   ============================================ */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-bottom: 2px solid var(--accent-red);
+    padding: var(--space-sm);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table tbody tr {
+    transition: var(--transition-fast);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.table tbody tr:hover {
+    background: var(--gray-wash);
+    transform: scale(1.005);
+    cursor: pointer;
+}
+
+.table tbody td {
+    padding: var(--space-sm);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   BADGES - Manga Speech Bubble Style
+   ============================================ */
+.badge {
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    border: 2px solid currentColor;
+    position: relative;
+}
+
+.badge-success {
+    background: #10B981;
+    color: var(--paper);
+    border-color: #10B981;
+}
+
+.badge-danger {
+    background: var(--accent-red);
+    color: var(--paper);
+    border-color: var(--accent-red);
+}
+
+.badge-warning {
+    background: #F59E0B;
+    color: var(--paper);
+    border-color: #F59E0B;
+}
+
+.badge-info {
+    background: var(--accent-red-light);
+    color: var(--paper);
+    border-color: var(--accent-red-light);
+}
+
+.badge-secondary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+}
+
+/* ============================================
+   ALERTS - Attention Grabbing
+   ============================================ */
+.alert {
+    border: 2px solid;
+    border-radius: 12px;
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-sm);
+    font-weight: 500;
+    font-size: 0.875rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.alert::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: currentColor;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10B981;
+    color: #065F46;
+}
+
+.alert-danger {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: var(--accent-red);
+    color: var(--accent-red-dark);
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: #F59E0B;
+    color: #92400E;
+}
+
+.alert-info {
+    background: rgba(220, 38, 38, 0.05);
+    border-color: var(--accent-red-light);
+    color: var(--accent-red-dark);
+}
+
+/* ============================================
+   FORMS - Apple Input Style
+   ============================================ */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--gray-dark);
+    font-size: 0.875rem;
+}
+
+.form-control,
+.form-select {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    transition: var(--transition-fast);
+    background: var(--paper);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--gray-medium);
+}
+
+/* ============================================
+   BREADCRUMBS - Navigation Trail
+   ============================================ */
+.breadcrumb {
+    background: transparent;
+    padding: var(--space-xs) 0;
+    margin-bottom: var(--space-sm);
+}
+
+.breadcrumb-item {
+    font-weight: 500;
+    font-size: 0.8125rem;
+    color: var(--gray-medium);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-size: 1.125rem;
+    color: var(--gray-medium);
+    padding: 0 4px;
+}
+
+.breadcrumb-item.active {
+    color: var(--gray-dark);
+    font-weight: 600;
+}
+
+.breadcrumb-item a {
+    color: var(--accent-red);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--accent-red-dark);
+}
+
+/* ============================================
+   DASHBOARD STATS - Big Numbers
+   ============================================ */
+.stat-card {
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--paper);
+    border-radius: 12px;
+    border: 2px solid var(--accent-red-border);
+    transition: var(--transition-smooth);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    border-color: var(--accent-red);
+}
+
+.stat-card-value {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+
+.stat-card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gray-medium);
+}
+
+/* ============================================
+   EMPTY STATES - Friendly & Clear
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: var(--space-lg) var(--space-md);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--gray-medium);
+    margin-bottom: var(--space-sm);
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+    color: var(--gray-dark);
+}
+
+.empty-state-description {
+    font-size: 0.875rem;
+    color: var(--gray-medium);
+    margin-bottom: var(--space-md);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    flex-direction: column;
+}
+
+.spinner-overlay.show {
+    display: flex;
+}
+
+.spinner-border {
+    width: 4rem;
+    height: 4rem;
+    border-width: 4px;
+    border-color: var(--accent-blue);
+    border-right-color: transparent;
+}
+
+.loading-text {
+    color: var(--paper);
+    margin-top: var(--space-md);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   FOOTER - Minimal
+   ============================================ */
+footer {
+    background: var(--gray-wash);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: var(--space-sm) 0;
+    margin-top: auto;
+}
+
+footer p {
+    font-size: 0.75rem;
+    color: var(--gray-medium);
+}
+
+/* ============================================
+   MANGA EFFECTS - Comic Book Flair
+   ============================================ */
+.manga-panel {
+    position: relative;
+    overflow: hidden;
+}
+
+.manga-panel::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: var(--speed-line);
+    opacity: 0;
+    transition: var(--transition-smooth);
+    pointer-events: none;
+}
+
+.manga-panel:hover::after {
+    opacity: 0.3;
+    animation: speed-lines 0.6s ease-out;
+}
+
+@keyframes speed-lines {
+    from {
+        transform: translateX(-100%) rotate(45deg);
+    }
+    to {
+        transform: translateX(100%) rotate(45deg);
+    }
+}
+
+/* Halftone background effect */
+.halftone-bg {
+    background-image: radial-gradient(circle, var(--gray-medium) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.05;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+    .card-body {
+        padding: var(--space-sm);
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .table {
+        font-size: 0.8125rem;
+    }
+    
+    .stat-card-value {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.25rem;
+    }
+    
+    h2 {
+        font-size: 1.125rem;
+    }
+    
+    .card {
+        border-width: 2px;
+        border-radius: 8px;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+*:focus-visible {
+    outline: 3px solid var(--accent-red);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.4s ease-out;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-gradient {
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.shadow-soft {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-hard {
+    box-shadow: var(--comic-shadow);
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .navbar,
+    .btn,
+    footer,
+    .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 2px solid var(--ink);
+        page-break-inside: avoid;
+    }
+    
+    body {
+        background: var(--paper);
+    }
+}

@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Files - Creator Backoffice{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Google Drive-style Grid View */
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 0;
+}
+
+.file-card {
+    background: var(--paper);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.file-card:hover {
+    border-color: var(--accent-red);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+    transform: translateY(-2px);
+}
+
+.file-icon-large {
+    font-size: 4rem;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.file-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--gray-dark);
+}
+
+.file-meta {
+    font-size: 0.75rem;
+    color: var(--gray-medium);
+}
+
+.file-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.file-card:hover .file-actions {
+    opacity: 1;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.view-toggle .btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.search-bar-compact {
+    flex: 1;
+    min-width: 300px;
+    max-width: 600px;
+}
+
+.search-bar-compact input {
+    border-radius: 24px;
+    padding: 10px 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.search-bar-compact input:focus {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+@media (max-width: 768px) {
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+    
+    .file-icon-large {
+        font-size: 3rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1400px; padding: 24px;">
+    
+    {% if not drive_connected %}
+    <div class="alert alert-warning">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Google Drive Not Connected</h4>
+        <p>Please connect your Google Drive account to view and manage files.</p>
+        <a href="{% url 'integrations:google_drive_connect' %}" class="btn btn-primary">
+            <i class="fab fa-google-drive"></i> Connect Google Drive
+        </a>
+    </div>
+    {% else %}
+    
+    <!-- Compact Header -->
+    <div class="compact-header">
+        <h2 style="margin: 0;">
+            <i class="fas fa-folder-open" style="color: var(--accent-red);"></i> Files
+        </h2>
+        
+        <div class="search-bar-compact">
+            <form method="get" action="{% url 'files:file_list' %}">
+                <input type="text" 
+                       name="q" 
+                       class="form-control" 
+                       placeholder="🔍 Search files..." 
+                       value="{{ search_query }}"
+                       aria-label="Search files">
+            </form>
+        </div>
+        
+        <div class="view-toggle">
+            {% if drive_connected %}
+            <a href="{% url 'files:file_upload' %}" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if search_query %}
+    <div style="margin-bottom: 16px;">
+        <span class="badge badge-info" style="font-size: 0.875rem; padding: 8px 16px;">
+            <i class="fas fa-search"></i> Searching for: "{{ search_query }}"
+        </span>
+        <a href="{% url 'files:file_list' %}" class="btn btn-sm btn-outline-secondary" style="margin-left: 8px;">
+            <i class="fas fa-times"></i> Clear
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Files Grid -->
+    {% if files %}
+    <div class="file-grid">
+        {% for file in files %}
+        <div class="file-card" onclick="window.location.href='{% url 'files:file_detail' file.file_id %}'">
+            <div class="file-actions">
+                {% if file.web_view_link %}
+                <a href="{{ file.web_view_link }}" 
+                   target="_blank" 
+                   class="btn btn-sm btn-outline-primary"
+                   onclick="event.stopPropagation();"
+                   title="Open in Google Drive">
+                    <i class="fab fa-google-drive"></i>
+                </a>
+                {% endif %}
+            </div>
+            
+            <i class="file-icon-large {% if 'video' in file.mime_type %}fas fa-file-video text-danger{% elif 'image' in file.mime_type %}fas fa-file-image text-primary{% elif 'audio' in file.mime_type %}fas fa-file-audio text-purple{% elif 'pdf' in file.mime_type %}fas fa-file-pdf text-danger{% elif 'document' in file.mime_type or 'word' in file.mime_type %}fas fa-file-word text-primary{% elif 'sheet' in file.mime_type or 'excel' in file.mime_type %}fas fa-file-excel text-success{% elif 'presentation' in file.mime_type or 'powerpoint' in file.mime_type %}fas fa-file-powerpoint text-warning{% elif 'zip' in file.mime_type or 'rar' in file.mime_type %}fas fa-file-archive text-warning{% else %}fas fa-file text-secondary{% endif %}"></i>
+            
+            <div class="file-name" title="{{ file.name }}">{{ file.name }}</div>
+            <div class="file-meta">
+                {{ file.get_size_display }} · {{ file.modified_time|date:"M d" }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="File pagination" style="margin-top: 32px;">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-folder-open"></i>
+        </div>
+        <h3 class="empty-state-title">No Files Found</h3>
+        <p class="empty-state-description">
+            {% if search_query %}
+                No files match your search. Try a different term.
+            {% else %}
+                Upload your first file to get started!
+            {% endif %}
+        </p>
+        {% if not search_query and drive_connected %}
+        <a href="{% url 'files:file_upload' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-upload"></i> Upload Your First File
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+</div>
+{% endblock %}

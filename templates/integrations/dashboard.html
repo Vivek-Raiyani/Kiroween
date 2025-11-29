@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Integrations - Creator Backoffice{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Integrations</h1>
+            <p class="text-muted mb-4">Connect your Google Drive and YouTube accounts to enable team collaboration and content management.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Google Drive Integration -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cloud me-2"></i>Google Drive
+                    </h5>
+                    {% if drive_connected %}
+                        <span class="badge bg-success">Connected</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Connected</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Connect your Google Drive to allow team members to access, upload, and manage video files.
+                    </p>
+                    
+                    {% if drive_connected %}
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Google Drive is connected and ready to use.
+                            <br>
+                            <small class="text-muted">
+                                Connected on {{ drive_integration.created_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <form method="post" action="{% url 'integrations:google_drive_disconnect' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger w-100" 
+                                        onclick="return confirm('Are you sure you want to disconnect Google Drive? This will remove access for all team members.')">
+                                    <i class="fas fa-unlink me-2"></i>Disconnect
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Connect Google Drive to enable file management for your team.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'integrations:google_drive_connect' %}" class="btn btn-primary">
+                                <i class="fab fa-google-drive me-2"></i>Connect Google Drive
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <strong>Features:</strong> File access, upload, search, and team sharing
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- YouTube Integration -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fab fa-youtube me-2"></i>YouTube
+                    </h5>
+                    {% if youtube_connected %}
+                        <span class="badge bg-success">Connected</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Connected</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Connect your YouTube channel to allow managers to upload approved videos directly.
+                    </p>
+                    
+                    {% if youtube_connected %}
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            YouTube channel is connected and ready for uploads.
+                            <br>
+                            <small class="text-muted">
+                                Connected on {{ youtube_integration.created_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <form method="post" action="{% url 'integrations:youtube_disconnect' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger w-100" 
+                                        onclick="return confirm('Are you sure you want to disconnect YouTube? This will prevent video uploads.')">
+                                    <i class="fas fa-unlink me-2"></i>Disconnect
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Connect YouTube to enable video uploads for your team.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'integrations:youtube_connect' %}" class="btn btn-danger">
+                                <i class="fab fa-youtube me-2"></i>Connect YouTube
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <strong>Features:</strong> Video upload, channel management, and approval workflow
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integration Status Summary -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Integration Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {% if drive_connected %}
+                                    <i class="fas fa-check-circle text-success fa-2x"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger fa-2x"></i>
+                                {% endif %}
+                            </div>
+                            <h6>Google Drive</h6>
+                            <p class="text-muted mb-0">
+                                {% if drive_connected %}Ready for file management{% else %}Not connected{% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {% if youtube_connected %}
+                                    <i class="fas fa-check-circle text-success fa-2x"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-secondary fa-2x"></i>
+                                {% endif %}
+                            </div>
+                            <h6>YouTube</h6>
+                            <p class="text-muted mb-0">
+                                {% if youtube_connected %}Ready for uploads{% else %}Not connected{% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {% if drive_connected %}
+                                    <i class="fas fa-users text-success fa-2x"></i>
+                                {% else %}
+                                    <i class="fas fa-users text-secondary fa-2x"></i>
+                                {% endif %}
+                            </div>
+                            <h6>Team Access</h6>
+                            <p class="text-muted mb-0">
+                                {% if drive_connected %}Team can access files{% else %}Requires Drive connection{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Google Drive Setup</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Allows team file access</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Enables file uploads</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Supports search and organization</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>YouTube Integration</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Direct video uploads</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Channel information retrieval</li>
+                                <li><i class="fas fa-check text-success me-2"></i>OAuth authentication</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh connection status
+function checkConnectionStatus() {
+    // Check Google Drive status
+    fetch('{% url "integrations:google_drive_status" %}')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Drive status:', data);
+        })
+        .catch(error => {
+            console.error('Error checking Drive status:', error);
+        });
+    
+    // Check YouTube status
+    fetch('{% url "integrations:youtube_status" %}')
+        .then(response => response.json())
+        .then(data => {
+            console.log('YouTube status:', data);
+            if (data.channel_info) {
+                console.log('Channel info:', data.channel_info);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking YouTube status:', error);
+        });
+}
+
+// Check status every 30 seconds
+setInterval(checkConnectionStatus, 30000);
+</script>
+{% endblock %}

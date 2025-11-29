@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Creator Backoffice{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="mb-3">
+            <a href="{% if is_editor %}{% url 'approvals:request_list' %}{% else %}{% url 'approvals:pending_approvals' %}{% endif %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>Approval Request Details</h3>
+                    {% if request_obj.status == 'pending' %}
+                        <span class="badge bg-warning text-dark fs-6">Pending</span>
+                    {% elif request_obj.status == 'approved' %}
+                        <span class="badge bg-success fs-6">Approved</span>
+                    {% elif request_obj.status == 'rejected' %}
+                        <span class="badge bg-danger fs-6">Rejected</span>
+                    {% elif request_obj.status == 'uploaded' %}
+                        <span class="badge bg-info fs-6">Uploaded</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Request Information</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Submitted by:</th>
+                                <td>{{ request_obj.editor.username }} ({{ request_obj.editor.get_role_display }})</td>
+                            </tr>
+                            <tr>
+                                <th>Submitted on:</th>
+                                <td>{{ request_obj.created_at|date:"Y-m-d H:i:s" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <strong>{{ request_obj.get_status_display }}</strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>File Information</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>File name:</th>
+                                <td>{{ request_obj.file.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>File size:</th>
+                                <td>{{ request_obj.file.get_size_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>File type:</th>
+                                <td>{{ request_obj.file.mime_type }}</td>
+                            </tr>
+                            <tr>
+                                <th>Modified:</th>
+                                <td>{{ request_obj.file.modified_time|date:"Y-m-d H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    {% if request_obj.description %}
+                        <div class="alert alert-light">
+                            {{ request_obj.description|linebreaks }}
+                        </div>
+                    {% else %}
+                        <p class="text-muted"><em>No description provided</em></p>
+                    {% endif %}
+                </div>
+                
+                {% if request_obj.reviewed_by %}
+                    <div class="mb-4">
+                        <h5>Review Information</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Reviewed by:</th>
+                                <td>{{ request_obj.reviewed_by.username }} ({{ request_obj.reviewed_by.get_role_display }})</td>
+                            </tr>
+                            <tr>
+                                <th>Reviewed on:</th>
+                                <td>{{ request_obj.reviewed_at|date:"Y-m-d H:i:s" }}</td>
+                            </tr>
+                        </table>
+                        
+                        {% if request_obj.status == 'rejected' and request_obj.rejection_reason %}
+                            <div class="alert alert-danger">
+                                <strong>Rejection Reason:</strong><br>
+                                {{ request_obj.rejection_reason|linebreaks }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                {% if request_obj.youtube_video_id %}
+                    <div class="mb-4">
+                        <h5>YouTube Information</h5>
+                        <div class="alert alert-info">
+                            <strong>Video ID:</strong> {{ request_obj.youtube_video_id }}<br>
+                            <a href="https://www.youtube.com/watch?v={{ request_obj.youtube_video_id }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                View on YouTube
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if request_obj.file.web_view_link %}
+                    <div class="mb-3">
+                        <a href="{{ request_obj.file.web_view_link }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right"></i> View File in Google Drive
+                        </a>
+                    </div>
+                {% endif %}
+                
+                {% if user.role in 'manager,creator' and request_obj.status == 'pending' %}
+                    <div class="mt-4 pt-4 border-top">
+                        <h5 class="mb-3">Review Actions</h5>
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{% url 'approvals:approve_request' request_obj.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to approve this request?')">
+                                    <i class="bi bi-check-circle"></i> Approve Request
+                                </button>
+                            </form>
+                            <a href="{% url 'approvals:reject_request' request_obj.pk %}" class="btn btn-danger">
+                                <i class="bi bi-x-circle"></i> Reject Request
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

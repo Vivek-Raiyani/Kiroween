@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Organize Code Explanation Files",
+  "description": "Automatically moves code explanation documents, testing guides, and temporary test scripts to the code_explanation folder to keep the project root clean and organized",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new file matching code explanation or testing patterns has been created. Please move this file to the code_explanation folder if it's not already there. Check if the file is a documentation file (*.md), testing guide, task summary, checkpoint guide, test script (test_*.py, verify_*.py, create_test_*.py, setup_test_*.py, reset_*.py), or other temporary testing/explanation file. Move it to code_explanation/ to keep the project organized."
+  }
+}

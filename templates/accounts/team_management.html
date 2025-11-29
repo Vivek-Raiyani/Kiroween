@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Team Management - Creator Backoffice{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Team Management</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-people"></i> Team Management
+                <i class="bi bi-info-circle tooltip-icon" 
+                   data-bs-toggle="tooltip" 
+                   data-bs-placement="right" 
+                   title="Manage your team members and their roles"></i>
+            </h2>
+            <a href="{% url 'accounts:add_team_member' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Team Member
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Invitations -->
+{% if pending_invitations %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Pending Invitations</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Invited</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invitation in pending_invitations %}
+                            <tr>
+                                <td>{{ invitation.email }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ invitation.get_role_display }}</span>
+                                </td>
+                                <td>{{ invitation.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'accounts:remove_team_member' invitation.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-danger confirm-action" 
+                                                data-confirm-title="Cancel Invitation"
+                                                data-confirm-message="Are you sure you want to cancel this invitation?"
+                                                data-confirm-text="Cancel Invitation"
+                                                data-cancel-text="Keep Invitation">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Active Team Members -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Team Members</h5>
+            </div>
+            <div class="card-body">
+                {% if team_members %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in team_members %}
+                            <tr>
+                                <td>
+                                    {{ member.username }}
+                                    {% if member == user %}
+                                        <span class="badge bg-info">You</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ member.email }}</td>
+                                <td>
+                                    {% if member.role == 'creator' %}
+                                        <span class="badge bg-success">{{ member.get_role_display }}</span>
+                                    {% elif member.role == 'manager' %}
+                                        <span class="badge bg-primary">{{ member.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ member.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ member.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if member != user %}
+                                    <form method="post" action="{% url 'accounts:remove_team_member' member.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-danger confirm-action" 
+                                                data-confirm-title="Remove Team Member"
+                                                data-confirm-message="Are you sure you want to remove {{ member.username }} from your team? This will revoke all their access immediately."
+                                                data-confirm-text="Remove"
+                                                data-cancel-text="Cancel">
+                                            <i class="bi bi-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Team Members Yet</h3>
+                    <p class="empty-state-description">
+                        You haven't added any team members yet. Start building your team!
+                    </p>
+                    <a href="{% url 'accounts:add_team_member' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Your First Team Member
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Role Descriptions</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-2">Creator</dt>
+                    <dd class="col-sm-10">Full access to all features including team management, integrations, and all file operations.</dd>
+                    
+                    <dt class="col-sm-2">Manager</dt>
+                    <dd class="col-sm-10">Can approve video uploads, upload to YouTube, view and upload files to Drive.</dd>
+                    
+                    <dt class="col-sm-2">Editor</dt>
+                    <dd class="col-sm-10">Can view and upload files to Drive, submit approval requests for YouTube uploads.</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

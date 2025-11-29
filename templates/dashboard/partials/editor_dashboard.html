@@ -1,0 +1,153 @@
+<!-- Editor Dashboard -->
+<div class="row">
+    <!-- Upload Statistics -->
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Requests</h5>
+                <h2 class="mb-0">{{ total_requests }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <h2 class="mb-0">{{ pending_requests_count }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Approved</h5>
+                <h2 class="mb-0">{{ approved_requests }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Uploaded</h5>
+                <h2 class="mb-0">{{ uploaded_requests }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Files -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Files</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_files %}
+                    <div class="list-group list-group-flush">
+                        {% for file in recent_files %}
+                            <a href="{% url 'files:file_detail' file.file_id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ file.name }}</h6>
+                                    <small>{{ file.get_size_display }}</small>
+                                </div>
+                                <small class="text-muted">Modified: {{ file.modified_time|date:"M d, Y H:i" }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'files:file_list' %}" class="btn btn-sm btn-outline-primary">View All Files</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No files available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Requests -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Pending Approval Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_requests %}
+                    <div class="list-group list-group-flush">
+                        {% for request in pending_requests %}
+                            <a href="{% url 'approvals:request_detail' request.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ request.file.name }}</h6>
+                                    <span class="badge bg-warning">Pending</span>
+                                </div>
+                                <small class="text-muted">Submitted: {{ request.created_at|date:"M d, Y H:i" }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No pending requests.</p>
+                {% endif %}
+                <div class="mt-3">
+                    <a href="{% url 'approvals:create_request' %}" class="btn btn-sm btn-primary">Create New Request</a>
+                    <a href="{% url 'approvals:request_list' %}" class="btn btn-sm btn-outline-primary">View All Requests</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Requests History -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Request History</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Status</th>
+                                    <th>Submitted</th>
+                                    <th>Reviewed By</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in recent_requests %}
+                                    <tr>
+                                        <td>{{ request.file.name }}</td>
+                                        <td>
+                                            {% if request.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif request.status == 'approved' %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif request.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif request.status == 'uploaded' %}
+                                                <span class="badge bg-info">Uploaded</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                        <td>{{ request.reviewed_by.username|default:"—" }}</td>
+                                        <td>
+                                            <a href="{% url 'approvals:request_detail' request.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No requests yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

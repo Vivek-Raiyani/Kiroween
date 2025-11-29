@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Listens to changes in Python source files and prompts the agent to update documentation in README.md or the code_explanation folder to reflect the changes",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Python source file has been modified. Please review the changes and update the relevant documentation. If the change affects the overall project structure or setup, update README.md. If it's a feature-specific change, update or create appropriate documentation in the code_explanation/ folder. Ensure the documentation accurately reflects the current implementation, including any new features, modified behavior, or updated dependencies."
+  }
+}

@@ -1,0 +1,23 @@
+{% comment %}
+Error alert partial with retry option.
+Usage: {% include 'partials/error_alert.html' with error_message='Error text' show_retry=True retry_url='url_name' %}
+{% endcomment %}
+
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <h5 class="alert-heading">
+        <i class="bi bi-exclamation-triangle-fill"></i> Error
+    </h5>
+    <p class="mb-0">{{ error_message }}</p>
+    
+    {% if show_retry %}
+    <hr>
+    <div class="mb-0">
+        <a href="{% if retry_url %}{% url retry_url %}{% else %}javascript:location.reload(){% endif %}" 
+           class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-arrow-clockwise"></i> Try Again
+        </a>
+    </div>
+    {% endif %}
+    
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>

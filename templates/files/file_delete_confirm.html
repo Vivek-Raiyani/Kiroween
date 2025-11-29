@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete File - Creator Backoffice{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'files:file_list' %}">Files</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'files:file_detail' file.file_id %}">{{ file.name|truncatewords:5 }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Delete</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">Confirm Deletion</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">Warning!</h5>
+                        <p>You are about to remove this file from the cache. This will not delete the file from Google Drive.</p>
+                    </div>
+
+                    <h5>File Details:</h5>
+                    <ul>
+                        <li><strong>Name:</strong> {{ file.name }}</li>
+                        <li><strong>Type:</strong> {{ file.mime_type }}</li>
+                        <li><strong>Size:</strong> {{ file.get_size_display }}</li>
+                        <li><strong>Modified:</strong> {{ file.modified_time|date:"F d, Y H:i" }}</li>
+                    </ul>
+
+                    <p class="text-danger"><strong>Are you sure you want to proceed?</strong></p>
+
+                    <form method="post" data-loading-message="Deleting file...">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'files:file_detail' file.file_id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Yes, Delete File
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
