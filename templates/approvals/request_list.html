@@ -86,8 +86,7 @@
                   </td>
                   <td>
                     {% if request.reviewed_by %}
-                    <i class="bi bi-person-check"></i> {{
-                    request.reviewed_by.username }}
+                    <i class="bi bi-person-check"></i> {{ request.reviewed_by.username }}
                     <br />
                     <small class="text-muted"
                       >{{ request.reviewed_at|date:"M d, Y" }}</small
@@ -120,9 +119,7 @@
         </div>
         <h3 class="empty-state-title">No Approval Requests</h3>
         <p class="empty-state-description">
-          {% if is_editor %} You haven't submitted any approval requests yet. {%
-          else %} There are no approval requests from your team members yet. {%
-          endif %}
+          {% if is_editor %} You haven't submitted any approval requests yet. {% else %} There are no approval requests from your team members yet. {% endif %}
         </p>
         {% if is_editor %}
         <a href="{% url 'approvals:create_request' %}" class="btn btn-primary">

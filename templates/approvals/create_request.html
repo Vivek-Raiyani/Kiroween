@@ -72,10 +72,10 @@
                   title="Optional: Add context or notes about this video for reviewers"
                 ></i>
               </label>
-              {{ form.description }} {% if form.description.help_text %}
+              {{ form.description }}
+              {% if form.description.help_text %}
               <div class="form-text">
-                <i class="bi bi-info-circle"></i> {{ form.description.help_text
-                }}
+                <i class="bi bi-info-circle"></i> {{ form.description.help_text }}
               </div>
               {% endif %} {% if form.description.errors %}
               <div class="invalid-feedback d-block">

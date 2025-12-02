@@ -247,15 +247,12 @@
           <div>
             <!-- All Requests Tab -->
             <div class="tab-panel active" data-panel="all">
-              {% include 'approvals/partials/request_table.html' with
-              requests=all_requests %}
+              {% include 'approvals/partials/request_table.html' with requests=all_requests %}
             </div>
 
             <!-- Pending Tab -->
             <div class="tab-panel" data-panel="pending" style="display: none">
-              {% if pending_requests %} {% include
-              'approvals/partials/request_table.html' with
-              requests=pending_requests %} {% else %}
+              {% if pending_requests %} {% include 'approvals/partials/request_table.html' with requests=pending_requests %} {% else %}
               <div
                 style="
                   padding: var(--space-4);
@@ -291,9 +288,7 @@
 
             <!-- Approved Tab -->
             <div class="tab-panel" data-panel="approved" style="display: none">
-              {% if approved_requests %} {% include
-              'approvals/partials/request_table.html' with
-              requests=approved_requests %} {% else %}
+              {% if approved_requests %} {% include 'approvals/partials/request_table.html' with requests=approved_requests %} {% else %}
               <div
                 style="
                   padding: var(--space-4);
@@ -329,9 +324,7 @@
 
             <!-- Rejected Tab -->
             <div class="tab-panel" data-panel="rejected" style="display: none">
-              {% if rejected_requests %} {% include
-              'approvals/partials/request_table.html' with
-              requests=rejected_requests %} {% else %}
+              {% if rejected_requests %} {% include 'approvals/partials/request_table.html' with requests=rejected_requests %} {% else %}
               <div
                 style="
                   padding: var(--space-4);
@@ -367,9 +360,7 @@
 
             <!-- Uploaded Tab -->
             <div class="tab-panel" data-panel="uploaded" style="display: none">
-              {% if uploaded_requests %} {% include
-              'approvals/partials/request_table.html' with
-              requests=uploaded_requests %} {% else %}
+              {% if uploaded_requests %} {% include 'approvals/partials/request_table.html' with requests=uploaded_requests %} {% else %}
               <div
                 style="
                   padding: var(--space-4);

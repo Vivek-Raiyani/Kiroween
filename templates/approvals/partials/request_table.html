@@ -39,14 +39,12 @@
             </td>
             <td>{{ request.created_at|date:"Y-m-d H:i" }}</td>
             <td>
-              {% if request.reviewed_by %} {{ request.reviewed_by.username }} {%
-              else %}
+              {% if request.reviewed_by %} {{ request.reviewed_by.username }} {% else %}
               <span class="text-muted">-</span>
               {% endif %}
             </td>
             <td>
-              {% if request.reviewed_at %} {{ request.reviewed_at|date:"Y-m-d
-              H:i" }} {% else %}
+              {% if request.reviewed_at %} {{ request.reviewed_at|date:"Y-m-d H:i" }} {% else %}
               <span class="text-muted">-</span>
               {% endif %}
             </td>

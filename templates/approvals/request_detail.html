@@ -355,8 +355,7 @@
           </div>
         </div>
 
-        {% if request_obj.status == 'rejected' and request_obj.rejection_reason
-        %}
+        {% if request_obj.status == 'rejected' and request_obj.rejection_reason %}
         <div
           style="
             padding: var(--space-4);
@@ -466,8 +465,7 @@
       </div>
 
       <!-- Review Actions (Manager/Creator only for pending requests) -->
-      {% if user.role in 'manager,creator' and request_obj.status == 'pending'
-      %}
+      {% if user.role in 'manager,creator' and request_obj.status == 'pending' %}
       <div
         style="
           margin-top: var(--space-6);

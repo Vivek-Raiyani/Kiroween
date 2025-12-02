@@ -27,8 +27,7 @@
 
       {% if requests %}
       <div class="alert alert-info mb-4" style="margin-bottom: 10px">
-        <strong>{{ requests|length }}</strong> pending approval request{{
-        requests|length|pluralize }} waiting for review.
+        <strong>{{ requests|length }}</strong> pending approval request{{ requests|length|pluralize }} waiting for review.
       </div>
 
       <div class="row">
@@ -45,12 +44,9 @@
 
               <div class="mb-3">
                 <small class="text-muted">
-                  <strong>Submitted by:</strong> {{ request.editor.username
-                  }}<br />
-                  <strong>Date:</strong> {{ request.created_at|date:"Y-m-d H:i"
-                  }}<br />
-                  <strong>File size:</strong> {{ request.file.get_size_display
-                  }}<br />
+                  <strong>Submitted by:</strong> {{ request.editor.username }}<br />
+                  <strong>Date:</strong> {{ request.created_at|date:"Y-m-d H:i" }}<br />
+                  <strong>File size:</strong> {{ request.file.get_size_display }}<br />
                   <strong>File type:</strong> {{ request.file.mime_type }}
                 </small>
               </div>

@@ -1,5 +1,6 @@
 {% extends 'base.html' %} 
 {% block title %}403 Forbidden - Creator Backoffice Platform{% endblock %} 
+
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-8">
@@ -21,11 +22,13 @@
           <strong>Your current role:</strong> {{ user.get_role_display }}
           <br />
           <small class="text-muted">
-            {% if user.role == 'editor' %} As an Editor, you can view files,
-            upload files, and submit approval requests. {% elif user.role ==
-            'manager' %} As a Manager, you can approve requests and upload
-            videos to YouTube. {% elif user.role == 'creator' %} As a Creator,
-            you have full access to all features. {% endif %}
+            {% if user.role == 'editor' %}
+              As an Editor, you can view files, upload files, and submit approval requests.
+            {% elif user.role == 'manager' %}
+              As a Manager, you can approve requests and upload videos to YouTube.
+            {% elif user.role == 'creator' %}
+              As a Creator, you have full access to all features.
+            {% endif %}
           </small>
         </div>
 

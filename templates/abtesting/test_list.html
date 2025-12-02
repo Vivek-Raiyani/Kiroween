@@ -68,8 +68,7 @@
     margin-right: 15px;
   }
 </style>
-{% endblock %} 
-{% block content %}
+{% endblock %} {% block content %}
 <div id="view-abtesting-list" class="view-section">
   <div class="abtesting-list">
     <div
@@ -287,8 +286,7 @@
               margin-bottom: var(--space-4);
             "
           >
-            {{ item.test.get_test_type_display }} Test · {{ item.variant_count
-            }} Variants
+            {{ item.test.get_test_type_display }} Test · {{ item.variant_count }} Variants
           </p>
 
           <!-- Test Details Section -->
@@ -359,8 +357,7 @@
                 style="color: var(--accent-green); font-size: var(--text-sm)"
               ></i>
               <small style="color: var(--gray-700); font-size: var(--text-sm)">
-                <strong>Current:</strong> Variant {{
-                item.current_variant.variant_name }}
+                <strong>Current:</strong> Variant {{ item.current_variant.variant_name }}
               </small>
             </div>
             {% endif %}
@@ -375,14 +372,13 @@
                 style="color: var(--gray-600); font-size: var(--text-sm)"
               ></i>
               <small style="color: var(--gray-700); font-size: var(--text-sm)">
-                {% if item.time_remaining.days > 0 %} {{
-                item.time_remaining.days }}d {% endif %} {{
-                item.time_remaining.seconds|floatformat:0|divisibleby:3600 }}h
+                {% if item.time_remaining.days > 0 %} {{ item.time_remaining.days }}d {% endif %} 
+                {{ item.time_remaining.seconds|floatformat:0 }}h
                 remaining
               </small>
             </div>
-            {% endif %} {% elif item.test.status == 'completed' and
-            item.test.winner_variant %}
+            {% endif %} 
+            {% elif item.test.status == 'completed' and item.test.winner_variant %}
             <!-- Winner Display -->
             <div
               style="display: flex; align-items: center; gap: var(--space-2)"

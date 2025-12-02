@@ -36,8 +36,7 @@
       </div>
       {% endif %} {% if requests %}
       <div class="alert alert-info mb-4">
-        <strong>{{ requests|length }}</strong> approved video{{
-        requests|length|pluralize }} ready for upload.
+        <strong>{{ requests|length }}</strong> approved video{{ requests|length|pluralize }} ready for upload.
       </div>
 
       <div class="row" style="margin-top: 10px">
@@ -52,14 +51,10 @@
 
               <div class="mb-3">
                 <small class="text-muted">
-                  <strong>Submitted by:</strong> {{ request.editor.username
-                  }}<br />
-                  <strong>Approved by:</strong> {{ request.reviewed_by.username
-                  }}<br />
-                  <strong>Approved on:</strong> {{
-                  request.reviewed_at|date:"Y-m-d H:i" }}<br />
-                  <strong>File size:</strong> {{ request.file.get_size_display
-                  }}<br />
+                  <strong>Submitted by:</strong> {{ request.editor.username }}<br />
+                  <strong>Approved by:</strong> {{ request.reviewed_by.username }}<br />
+                  <strong>Approved on:</strong> {{ request.reviewed_at|date:"Y-m-d H:i" }}<br />
+                  <strong>File size:</strong> {{ request.file.get_size_display }}<br />
                   <strong>File type:</strong> {{ request.file.mime_type }}
                 </small>
               </div>

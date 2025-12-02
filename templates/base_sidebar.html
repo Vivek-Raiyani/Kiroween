@@ -10,7 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- Google Fonts - Oswald & Inter with optimized loading -->
-    <!-- font-display=swap prevents FOIT (Flash of Invisible Text) for better performance -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;600;700;800&display=swap"
       rel="stylesheet"
@@ -59,169 +58,144 @@
       <!-- Navigation -->
       <nav class="sidebar-nav" aria-label="Primary navigation">
         {% if user.is_authenticated %}
-        <!-- Dashboard Section -->
-        <div class="nav-group" role="group" aria-labelledby="nav-overview">
-          <div class="nav-group-label" id="nav-overview">Overview</div>
-          <a
-            href="{% url 'dashboard' %}"
-            class="nav-link"
-            data-target="dashboard"
-            aria-label="Go to Dashboard"
-          >
-            <i class="fas fa-home" aria-hidden="true"></i>
-            <span>Dashboard</span>
-          </a>
-        </div>
-
-        <!-- Growth Section
-                <div class="nav-group" role="group" aria-labelledby="nav-growth">
-                    <div class="nav-group-label" id="nav-growth">Growth</div>
-                    {% if is_creator_or_manager %}
-                        <a href="{% url 'analytics:dashboard' %}" class="nav-link" data-target="analytics-dashboard" aria-label="Go to AI Analytics">
-                            <i class="fas fa-chart-pie" aria-hidden="true"></i>
-                            <span>AI Analytics</span>
-                        </a>
-                        <a href="{% url 'analytics:channel_analytics' %}" class="nav-link" data-target="channel-analytics" aria-label="Go to Channel Analytics">
-                            <i class="fas fa-chart-line" aria-hidden="true"></i>
-                            <span>Channel Analytics</span>
-                        </a>
-                        <a href="{% url 'analytics:competitor_analysis' %}" class="nav-link" data-target="competitor-analysis" aria-label="Go to Competitor Analysis">
-                            <i class="fas fa-users" aria-hidden="true"></i>
-                            <span>Competitor Analysis</span>
-                        </a>
-                        <a href="{% url 'analytics:seo_insights' %}" class="nav-link" data-target="seo-insights" aria-label="Go to SEO Insights">
-                            <i class="fas fa-search" aria-hidden="true"></i>
-                            <span>SEO Insights</span>
-                        </a>
-                        <a href="{% url 'analytics:posting_recommendations' %}" class="nav-link" data-target="posting-recommendations" aria-label="Go to Best Time to Post">
-                            <i class="fas fa-clock" aria-hidden="true"></i>
-                            <span>Best Time to Post</span>
-                        </a>
-                    {% endif %}
-                </div> -->
-
-        <!-- Testing Section -->
-        {% if is_creator_or_manager %}
-        <div class="nav-group" role="group" aria-labelledby="nav-optimization">
-          <div class="nav-group-label" id="nav-optimization">Optimization</div>
-          <a
-            href="{% url 'abtesting:test_list' %}"
-            class="nav-link"
-            data-target="abtesting"
-            aria-label="Go to A/B Testing"
-          >
-            <i class="fas fa-flask" aria-hidden="true"></i>
-            <span>A/B Testing</span>
-          </a>
-        </div>
-        {% endif %}
-
-        <!-- Content Section -->
-        <div class="nav-group" role="group" aria-labelledby="nav-content">
-          <div class="nav-group-label" id="nav-content">Content</div>
-          <a
-            href="{% url 'files:file_list' %}"
-            class="nav-link"
-            data-target="files"
-            aria-label="Go to Files"
-          >
-            <i class="fas fa-folder" aria-hidden="true"></i>
-            <span>Files</span>
-          </a>
-          <a
-            href="{% url 'approvals:request_list' %}"
-            class="nav-link"
-            data-target="requests"
-            aria-label="Go to {% if is_editor %}My Requests{% else %}All Requests{% endif %}"
-          >
-            <i class="fas fa-file-alt" aria-hidden="true"></i>
-            <span
-              >{% if is_editor %}My Requests{% else %}All Requests{% endif
-              %}</span
+          <!-- Dashboard Section -->
+          <div class="nav-group" role="group" aria-labelledby="nav-overview">
+            <div class="nav-group-label" id="nav-overview">Overview</div>
+            <a
+              href="{% url 'dashboard' %}"
+              class="nav-link"
+              data-target="dashboard"
+              aria-label="Go to Dashboard"
             >
-          </a>
-          {% if is_creator_or_manager %}
-          <a
-            href="{% url 'approvals:pending_approvals' %}"
-            class="nav-link"
-            data-target="approvals"
-            aria-label="Go to Approvals"
-          >
-            <i class="fas fa-check-circle" aria-hidden="true"></i>
-            <span>Approvals</span>
-          </a>
-          <a
-            href="{% url 'approvals:youtube_upload_list' %}"
-            class="nav-link"
-            data-target="youtube-uploads"
-            aria-label="Go to Upload to YouTube"
-          >
-            <i class="fab fa-youtube" aria-hidden="true"></i>
-            <span>Upload to YouTube</span>
-          </a>
-          {% endif %} {% if is_creator %}
-          <a
-            href="{% url 'approvals:creator_direct_upload' %}"
-            class="nav-link"
-            data-target="direct-upload"
-            aria-label="Go to Direct Upload"
-          >
-            <i class="fas fa-upload" aria-hidden="true"></i>
-            <span>Direct Upload</span>
-          </a>
-          {% endif %}
-        </div>
+              <i class="fas fa-home" aria-hidden="true"></i>
+              <span>Dashboard</span>
+            </a>
+          </div>
 
-        <!-- Team & Settings Section -->
-        {% if is_creator %}
-        <div class="nav-group" role="group" aria-labelledby="nav-settings">
-          <div class="nav-group-label" id="nav-settings">Settings</div>
-          <a
-            href="{% url 'accounts:team_management' %}"
-            class="nav-link"
-            data-target="team"
-            aria-label="Go to Team Management"
-          >
-            <i class="fas fa-users-cog" aria-hidden="true"></i>
-            <span>Team</span>
-          </a>
-          <a
-            href="{% url 'integrations:dashboard' %}"
-            class="nav-link"
-            data-target="integrations"
-            aria-label="Go to Integrations"
-          >
-            <i class="fas fa-plug" aria-hidden="true"></i>
-            <span>Integrations</span>
-          </a>
-        </div>
-        {% endif %} {% endif %}
+          <!-- Optimization Section -->
+          {% if is_creator_or_manager %}
+            <div class="nav-group" role="group" aria-labelledby="nav-optimization">
+              <div class="nav-group-label" id="nav-optimization">Optimization</div>
+              <a
+                href="{% url 'abtesting:test_list' %}"
+                class="nav-link"
+                data-target="abtesting"
+                aria-label="Go to A/B Testing"
+              >
+                <i class="fas fa-flask" aria-hidden="true"></i>
+                <span>A/B Testing</span>
+              </a>
+            </div>
+          {% endif %}
+
+          <!-- Content Section -->
+          <div class="nav-group" role="group" aria-labelledby="nav-content">
+            <div class="nav-group-label" id="nav-content">Content</div>
+            <a
+              href="{% url 'files:file_list' %}"
+              class="nav-link"
+              data-target="files"
+              aria-label="Go to Files"
+            >
+              <i class="fas fa-folder" aria-hidden="true"></i>
+              <span>Files</span>
+            </a>
+            <a
+              href="{% url 'approvals:request_list' %}"
+              class="nav-link"
+              data-target="requests"
+              aria-label="Go to {% if is_editor %}My Requests{% else %}All Requests{% endif %}"
+            >
+              <i class="fas fa-file-alt" aria-hidden="true"></i>
+              <span>{% if is_editor %}My Requests{% else %}All Requests{% endif %}</span>
+            </a>
+
+            {% if is_creator_or_manager %}
+              <a
+                href="{% url 'approvals:pending_approvals' %}"
+                class="nav-link"
+                data-target="approvals"
+                aria-label="Go to Approvals"
+              >
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                <span>Approvals</span>
+              </a>
+              <a
+                href="{% url 'approvals:youtube_upload_list' %}"
+                class="nav-link"
+                data-target="youtube-uploads"
+                aria-label="Go to Upload to YouTube"
+              >
+                <i class="fab fa-youtube" aria-hidden="true"></i>
+                <span>Upload to YouTube</span>
+              </a>
+            {% endif %}
+
+            {% if is_creator %}
+              <a
+                href="{% url 'approvals:creator_direct_upload' %}"
+                class="nav-link"
+                data-target="direct-upload"
+                aria-label="Go to Direct Upload"
+              >
+                <i class="fas fa-upload" aria-hidden="true"></i>
+                <span>Direct Upload</span>
+              </a>
+            {% endif %}
+          </div>
+
+          <!-- Team & Settings Section -->
+          {% if is_creator %}
+            <div class="nav-group" role="group" aria-labelledby="nav-settings">
+              <div class="nav-group-label" id="nav-settings">Settings</div>
+              <a
+                href="{% url 'accounts:team_management' %}"
+                class="nav-link"
+                data-target="team"
+                aria-label="Go to Team Management"
+              >
+                <i class="fas fa-users-cog" aria-hidden="true"></i>
+                <span>Team</span>
+              </a>
+              <a
+                href="{% url 'integrations:dashboard' %}"
+                class="nav-link"
+                data-target="integrations"
+                aria-label="Go to Integrations"
+              >
+                <i class="fas fa-plug" aria-hidden="true"></i>
+                <span>Integrations</span>
+              </a>
+            </div>
+          {% endif %}
+
+        {% endif %}
       </nav>
 
       <!-- User Profile Footer -->
       {% if user.is_authenticated %}
-      <div class="sidebar-footer">
-        <div
-          class="user-profile"
-          role="complementary"
-          aria-label="User profile"
-        >
-          <div class="user-avatar" aria-hidden="true">
-            <i class="fas fa-user-circle"></i>
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ user.username }}</div>
-            <div class="user-plan">{{ user.get_role_display }}</div>
-          </div>
-          <a
-            href="{% url 'accounts:logout' %}"
-            class="logout-btn"
-            aria-label="Logout from CreatorFlow"
+        <div class="sidebar-footer">
+          <div
+            class="user-profile"
+            role="complementary"
+            aria-label="User profile"
           >
-            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-          </a>
+            <div class="user-avatar" aria-hidden="true">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{ user.username }}</div>
+              <div class="user-plan">{{ user.get_role_display }}</div>
+            </div>
+            <a
+              href="{% url 'accounts:logout' %}"
+              class="logout-btn"
+              aria-label="Logout from CreatorFlow"
+            >
+              <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            </a>
+          </div>
         </div>
-      </div>
       {% endif %}
     </aside>
 
@@ -238,11 +212,11 @@
 
       <!-- Django Messages (will be converted to toasts) -->
       {% if messages %}
-      <div class="django-messages" style="display: none">
-        {% for message in messages %}
-        <div class="message" data-level="{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-      </div>
+        <div class="django-messages" style="display: none">
+          {% for message in messages %}
+            <div class="message" data-level="{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
       {% endif %}
 
       <!-- View Sections Container -->

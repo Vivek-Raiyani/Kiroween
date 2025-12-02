@@ -33,8 +33,7 @@
               <strong>Submitted by:</strong> {{ request_obj.editor.username }}
             </p>
             <p class="mb-0">
-              <strong>Approved by:</strong> {{ request_obj.reviewed_by.username
-              }} on {{ request_obj.reviewed_at|date:"Y-m-d H:i" }}
+              <strong>Approved by:</strong> {{ request_obj.reviewed_by.username }} on {{ request_obj.reviewed_at|date:"Y-m-d H:i" }}
             </p>
           </div>
 
@@ -49,7 +48,7 @@
             method="post"
             enctype="multipart/form-data"
             id="uploadForm"
-            data-loading-message="Uploading video to YouTube... This may take several minutes."
+            
           >
             {% csrf_token %}
 

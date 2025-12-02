@@ -455,9 +455,11 @@
             Time Remaining
           </div>
           <div style="font-family: 'Oswald'; font-size: 2rem">
-            {% if status_data.time_remaining_seconds %}{{
-            status_data.time_remaining_seconds|floatformat:0|divisibleby:3600
-            }}h{% else %}--{% endif %}
+            {% if status_data.time_remaining_seconds %}
+            {{ status_data.time_remaining_seconds|floatformat:0|divisibleby:3600}} 
+            {% else %}
+            --
+            {% endif %}
           </div>
         </div>
         <div style="flex: 1">
@@ -472,8 +474,10 @@
             Current Variant
           </div>
           <div style="font-family: 'Oswald'; font-size: 2rem">
-            {% if current_variant %}{{ current_variant.variant_name }}{% else
-            %}--{% endif %}
+            {% if current_variant %}{{ current_variant.variant_name }}
+            {% else%}
+            --
+            {% endif %}
           </div>
         </div>
       </div>
@@ -495,101 +499,133 @@
         Test Controls
       </h3>
 
+
       <form
-        method="post"
-        action="{% url 'abtesting:test_management' test.id %}"
-        style="display: inline-block"
-      >
-        {% csrf_token %} {% if test.status == 'draft' %}
-        <button
-          type="submit"
-          name="action"
-          value="start"
-          style="
-            padding: 10px 20px;
-            background: #000;
-            color: #fff;
-            border-radius: 8px;
-            border: none;
-          "
-        >
-          Start Test
-        </button>
-        {% elif test.status == 'active' %}
-        <button
-          type="submit"
-          name="action"
-          value="pause"
-          style="
-            padding: 10px 20px;
-            background: #ff9500;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-          "
-        >
-          Pause
-        </button>
-        <button
-          type="submit"
-          name="action"
-          value="stop"
-          onclick="return confirm('Stop early?')"
-          style="
-            padding: 10px 20px;
-            background: #ff3b30;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-          "
-        >
-          Stop
-        </button>
-        <button
-          type="submit"
-          name="action"
-          value="rotate_variant"
-          style="
-            padding: 10px 20px;
-            background: #fff;
-            border: 1px solid #111;
-            border-radius: 8px;
-          "
-        >
-          Rotate Variant
-        </button>
-        {% elif test.status == 'paused' %}
-        <button
-          type="submit"
-          name="action"
-          value="resume"
-          style="
-            padding: 10px 20px;
-            background: #34c759;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-          "
-        >
-          Resume
-        </button>
-        <button
-          type="submit"
-          name="action"
-          value="stop"
-          onclick="return confirm('Stop test?')"
-          style="
-            padding: 10px 20px;
-            background: #ff3b30;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-          "
-        >
-          Stop
-        </button>
-        {% endif %}
-      </form>
+  method="post"
+  action="{% url 'abtesting:test_management' test.id %}"
+  style="display: inline-block"
+>
+  {% csrf_token %}
+  <input type="hidden" name="action" id="action-input" />
+
+  <script>
+    function setAction(action, confirmMessage = null) {
+      if (confirmMessage && !confirm(confirmMessage)) {
+        return false; // stop submit
+      }
+      document.getElementById('action-input').value = action;
+      return true; // allow submit
+    }
+  </script>
+
+  {% if test.status == 'draft' %}
+
+    <button type="submit" onclick="return setAction('start')">
+      Start
+    </button>
+
+    <button type="submit" onclick="return setAction('pause')">
+      Pause
+    </button>
+
+    <button type="submit" onclick="return setAction('stop')">
+      Stop
+    </button>
+
+    <button type="submit" onclick="return setAction('rotate_variant')">
+      Rotate Variant
+    </button>
+
+    <button
+      type="submit"
+      style="
+        padding: 10px 20px;
+        background: #000;
+        color: #fff;
+        border-radius: 8px;
+        border: none;
+      "
+      onclick="return setAction('start')"
+    >
+      Start Test
+    </button>
+
+  {% elif test.status == 'active' %}
+
+    <button
+      type="submit"
+      style="
+        padding: 10px 20px;
+        background: #ff9500;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+      "
+      onclick="return setAction('pause')"
+    >
+      Pause
+    </button>
+
+    <button
+      type="submit"
+      style="
+        padding: 10px 20px;
+        background: #ff3b30;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+      "
+      onclick="return setAction('stop','Stop early?')"
+    >
+      Stop
+    </button>
+
+    <button
+      type="submit"
+      style="
+        padding: 10px 20px;
+        background: #fff;
+        border: 1px solid #111;
+        border-radius: 8px;
+      "
+      onclick="return setAction('rotate_variant')"
+    >
+      Rotate Variant
+    </button>
+
+  {% elif test.status == 'paused' %}
+
+    <button
+      type="submit"
+      style="
+        padding: 10px 20px;
+        background: #34c759;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+      "
+      onclick="return setAction('resume')"
+    >
+      Resume
+    </button>
+
+    <button
+      type="submit"
+      style="
+        padding: 10px 20px;
+        background: #ff3b30;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+      "
+      onclick="return setAction('stop','Stop test?')"
+    >
+      Stop
+    </button>
+
+  {% endif %}
+</form>
+
 
       {% if winner_info and not winner_info.has_winner %}
       <div
