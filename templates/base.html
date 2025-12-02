@@ -1,136 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Creator Backoffice Platform{% endblock %}</title>
-    
+
     <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
+
     <!-- Font Awesome for additional icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
     <!-- Custom CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
     {% block extra_css %}{% endblock %}
-</head>
-<body class="fade-in">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+  </head>
+  <body class="fade-in">
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-bolt"></i> Creator Backoffice
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'files:file_list' %}">Files</a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'approvals:request_list' %}">
-                                {% if is_editor %}My Requests{% else %}All Requests{% endif %}
-                            </a>
-                        </li>
-                        
-                        {% if is_creator_or_manager %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'approvals:pending_approvals' %}">Approvals</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'approvals:youtube_upload_list' %}">Upload to YouTube</a>
-                            </li>
-                        {% endif %}
-                        
-                        {% if is_creator %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'approvals:creator_direct_upload' %}">
-                                    <i class="bi bi-youtube"></i> Direct Upload
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'accounts:team_management' %}">Team</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'integrations:dashboard' %}">Integrations</a>
-                            </li>
-                        {% endif %}
-                    {% endif %}
-                </ul>
-                
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                {{ user.username }} ({{ user.get_role_display }})
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+          <i class="fas fa-bolt"></i> Creator Backoffice
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'files:file_list' %}">Files</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'approvals:request_list' %}">
+                {% if is_editor %}My Requests{% else %}All Requests{% endif %}
+              </a>
+            </li>
+
+            {% if is_creator_or_manager %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'approvals:pending_approvals' %}"
+                >Approvals</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="{% url 'approvals:youtube_upload_list' %}"
+                >Upload to YouTube</a
+              >
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="analyticsDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-chart-line"></i> Analytics
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'analytics:dashboard' %}"
+                    >Dashboard</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'analytics:channel_analytics' %}"
+                    >Channel Analytics</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'analytics:competitor_analysis' %}"
+                    >Competitor Analysis</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'analytics:seo_insights' %}"
+                    >SEO Insights</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'analytics:posting_recommendations' %}"
+                    >Best Time to Post</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'abtesting:test_list' %}">
+                <i class="fas fa-flask"></i> A/B Testing
+              </a>
+            </li>
+            {% endif %} {% if is_creator %}
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="{% url 'approvals:creator_direct_upload' %}"
+              >
+                <i class="bi bi-youtube"></i> Direct Upload
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:team_management' %}"
+                >Team</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'integrations:dashboard' %}"
+                >Integrations</a
+              >
+            </li>
+            {% endif %} {% endif %}
+          </ul>
+
+          <ul class="navbar-nav">
+            {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="userDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                {{ user.username }} ({{ user.get_role_display }})
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:logout' %}"
+                    >Logout</a
+                  >
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+            </li>
+            {% endif %}
+          </ul>
         </div>
+      </div>
     </nav>
 
     <!-- Messages -->
     {% if messages %}
-        <div class="container mt-2">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        </div>
+    <div class="container mt-2">
+      {% for message in messages %}
+      <div
+        class="alert alert-{{ message.tags }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      {% endfor %}
+    </div>
     {% endif %}
 
     <!-- Main Content -->
     <main class="container mt-2">
-        <!-- Breadcrumbs -->
-        {% block breadcrumbs %}{% endblock %}
-        
-        {% block content %}{% endblock %}
+      <!-- Breadcrumbs -->
+      {% block breadcrumbs %}{% endblock %} {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
     <footer>
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2024 Creator Backoffice Platform · Designed with <i class="fas fa-heart" style="color: #FF3B30;"></i></p>
-        </div>
+      <div class="container text-center">
+        <p class="mb-0">
+          &copy; 2024 Creator Backoffice Platform · Designed with
+          <i class="fas fa-heart" style="color: #ff3b30"></i>
+        </p>
+      </div>
     </footer>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <!-- Custom JS -->
     <script src="{% static 'js/main.js' %}"></script>
-    
+
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>

@@ -25,6 +25,8 @@ urlpatterns = [
     path('integrations/', include('integrations.urls')),
     path('files/', include('files.urls')),
     path('approvals/', include('approvals.urls')),
+    path('analytics/', include('analytics.urls')),
+    path('abtesting/', include('abtesting.urls')),
     path('', include('dashboard.urls')),
 ]
 

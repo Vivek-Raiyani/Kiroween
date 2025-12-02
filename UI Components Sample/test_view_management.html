@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Management Test</title>
+    <link rel="stylesheet" href="static/css/sidebar-redesign.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">CREATOR<span>FLOW</span></div>
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <div class="nav-group-label">Test Navigation</div>
+                <a href="#" class="nav-link active" data-target="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-link" data-target="analytics">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-link" data-target="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Toast Container -->
+        <div class="toast-container"></div>
+
+        <!-- View Sections -->
+        <div id="view-dashboard" class="view-section active">
+            <h1>Dashboard View</h1>
+            <p>This is the dashboard content.</p>
+            <button onclick="showToast('Dashboard action completed!', 'success')">Test Success Toast</button>
+        </div>
+
+        <div id="view-analytics" class="view-section">
+            <h1>Analytics View</h1>
+            <p>This is the analytics content.</p>
+            <button onclick="showToast('Analytics loaded', 'info')">Test Info Toast</button>
+        </div>
+
+        <div id="view-settings" class="view-section">
+            <h1>Settings View</h1>
+            <p>This is the settings content.</p>
+            <button onclick="showToast('Settings saved!', 'success')">Test Success Toast</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="static/js/main.js"></script>
+    
+    <script>
+        // Test navigation programmatically
+        console.log('View Management Test Page Loaded');
+        
+        // Test that only one view is active at a time
+        setTimeout(() => {
+            const activeViews = document.querySelectorAll('.view-section.active');
+            console.log('Active views count:', activeViews.length);
+            console.assert(activeViews.length === 1, 'Should have exactly one active view');
+        }, 500);
+    </script>
+</body>
+</html>

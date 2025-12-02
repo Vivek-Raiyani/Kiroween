@@ -1,65 +1,93 @@
-{% extends 'base.html' %}
-
-{% block title %}Login - Creator Backoffice Platform{% endblock %}
-
+{% extends 'base.html' %} 
+{% block title %}Login - Creator Backoffice Platform{% endblock %} 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Login</h2>
-                
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.username.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.password.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors.0 }}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <div class="text-center mt-3">
-            <div class="card">
-                <div class="card-body">
-                    <p class="mb-2">
-                        <strong>Don't have an account?</strong>
-                    </p>
-                    <a href="{% url 'accounts:creator_register' %}" class="btn btn-outline-primary btn-sm">
-                        Create Creator Account
-                    </a>
-                    <p class="text-muted mt-2 mb-0">
-                        <small>Team members (Managers/Editors) need an invitation from a creator.</small>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+<script>
+  function login() {
+    document.getElementById("auth-screen").style.display = "none";
+  }
+</script>
+
+<!-- AUTH SCREEN OVERLAY -->
+<div id="auth-screen">
+  <div class="logo">CREATOR<span>FLOW</span></div>
+  <p style="margin-bottom: 30px; color: #666">Enterprise Platform Demo</p>
+
+  <div class="auth-card">
+    <button
+      class="btn"
+      style="width: 100%; margin-bottom: 10px; padding: 15px"
+      onclick="login()"
+    >
+      <div style="flex: 1; text-align: left">
+        <div style="font-weight: bold">Login to Platform</div>
+        <div style="font-size: 0.8rem; color: #666">Secure Access</div>
+      </div>
+      <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
 </div>
+
+<!-- REAL LOGIN FORM -->
+<div
+  style="
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  "
+>
+  <div class="auth-card" style="max-width: 420px">
+    <h2 style="margin-bottom: 20px">Login</h2>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="form-field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }} {% if form.username.errors %}
+        <div class="invalid-feedback">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }} {% if form.password.errors %}
+        <div class="invalid-feedback">{{ form.password.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="invalid-feedback" style="margin-bottom: 10px">
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        style="width: 100%; margin-top: 10px"
+      >
+        Login
+      </button>
+    </form>
+
+    <div class="register-box">
+      Don’t have an account?
+      <br />
+      <a
+        href="{% url 'accounts:creator_register' %}"
+        class="btn"
+        style="margin-top: 10px"
+      >
+        Create Creator Account
+      </a>
+      <p style="color: #666; font-size: 0.75rem; margin-top: 10px">
+        Managers & Editors must be invited by a Creator.
+      </p>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

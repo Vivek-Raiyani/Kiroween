@@ -1,0 +1,366 @@
+{% extends 'base_sidebar.html' %}
+
+{% block title %}SEO Insights - CreatorFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analyze-card {
+        background: var(--paper);
+        border: 2px dashed var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-lg);
+        transition: var(--transition-smooth);
+    }
+    
+    .analyze-card:hover {
+        border-color: var(--accent-red);
+        border-style: solid;
+    }
+    
+    .seo-score-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-lg);
+        text-align: center;
+        margin-bottom: var(--space-md);
+        position: relative;
+    }
+    
+    .seo-score-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .score-circle {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto var(--space-md);
+        position: relative;
+    }
+    
+    .score-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 900;
+        color: var(--ink);
+    }
+    
+    .score-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-medium);
+    }
+    
+    .score-breakdown {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--space-md);
+        margin-top: var(--space-md);
+    }
+    
+    .breakdown-item {
+        text-align: center;
+        padding: var(--space-sm);
+    }
+    
+    .breakdown-value {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent-red);
+    }
+    
+    .breakdown-label {
+        font-size: 0.75rem;
+        color: var(--gray-medium);
+        margin-top: 4px;
+    }
+    
+    .keyword-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+        position: relative;
+    }
+    
+    .keyword-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .keyword-tag {
+        display: inline-block;
+        background: var(--gray-wash);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 20px;
+        padding: 6px 16px;
+        margin: 4px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--ink);
+        transition: var(--transition-fast);
+    }
+    
+    .keyword-tag:hover {
+        background: var(--accent-red);
+        color: var(--paper);
+        border-color: var(--accent-red);
+        transform: translateY(-2px);
+    }
+    
+    .recommendation-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-sm);
+        transition: var(--transition-smooth);
+    }
+    
+    .recommendation-card:hover {
+        transform: translateX(4px);
+        border-color: var(--accent-red);
+    }
+    
+    .recommendation-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-red);
+        color: var(--paper);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+        margin-right: var(--space-sm);
+    }
+    
+    .recommendation-content {
+        flex: 1;
+    }
+    
+    .recommendation-title {
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 4px;
+    }
+    
+    .recommendation-text {
+        font-size: 0.875rem;
+        color: var(--gray-medium);
+    }
+    
+    .analysis-history {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: var(--space-md);
+    }
+    
+    .history-item {
+        padding: var(--space-md);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: var(--transition-fast);
+    }
+    
+    .history-item:hover {
+        background: var(--gray-wash);
+    }
+    
+    .history-item:last-child {
+        border-bottom: none;
+    }
+    
+    .history-score {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--accent-red);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="view-seo-insights" class="view-section">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-search"></i> SEO Insights</h1>
+            <p class="text-muted">Optimize your video titles, descriptions, and tags for better discoverability</p>
+        </div>
+    </div>
+
+<!-- Analyze Video Form -->
+<div class="analyze-card">
+    <h3 class="mb-3"><i class="fas fa-microscope"></i> Analyze Video SEO</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="video_id" class="form-label">Video ID</label>
+                <input type="text" class="form-control" id="video_id" name="video_id" 
+                       placeholder="Enter YouTube video ID" required>
+            </div>
+            <div class="col-md-6">
+                <label for="title" class="form-label">Video Title</label>
+                <input type="text" class="form-control" id="title" name="title" 
+                       placeholder="Enter video title" required>
+            </div>
+            <div class="col-12">
+                <label for="description" class="form-label">Video Description</label>
+                <textarea class="form-control" id="description" name="description" rows="4" 
+                          placeholder="Enter video description" required></textarea>
+            </div>
+            <div class="col-12">
+                <label for="tags" class="form-label">Tags (comma-separated)</label>
+                <input type="text" class="form-control" id="tags" name="tags" 
+                       placeholder="tag1, tag2, tag3">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-chart-line"></i> Analyze SEO
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Recent Analyses -->
+{% if recent_analyses %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2><i class="fas fa-history"></i> Recent Analyses</h2>
+    </div>
+</div>
+
+{% for analysis in recent_analyses %}
+<div class="row mb-4">
+    <div class="col-lg-4">
+        <!-- SEO Score -->
+        <div class="seo-score-card">
+            <div class="score-circle">
+                <svg width="150" height="150">
+                    <circle cx="75" cy="75" r="65" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="10"/>
+                    <circle cx="75" cy="75" r="65" fill="none" 
+                            stroke="{% if analysis.seo_score >= 80 %}#10B981{% elif analysis.seo_score >= 60 %}#F59E0B{% else %}#DC2626{% endif %}" 
+                            stroke-width="10" 
+                            stroke-dasharray="{{ analysis.seo_score|floatformat:0 }} 100"
+                            stroke-linecap="round"
+                            transform="rotate(-90 75 75)"/>
+                </svg>
+                <div class="score-value">{{ analysis.seo_score }}</div>
+            </div>
+            <div class="score-label">SEO Score</div>
+            
+            <div class="score-breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-value">{{ analysis.title|length }}</div>
+                    <div class="breakdown-label">Title Length</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value">{{ analysis.tags|length }}</div>
+                    <div class="breakdown-label">Tags</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <!-- Video Info -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-video"></i> {{ analysis.title }}
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Video ID:</strong> <code>{{ analysis.video_id }}</code></p>
+                <p class="mb-2"><strong>Analyzed:</strong> {{ analysis.analyzed_at|date:"M d, Y H:i" }}</p>
+                <p class="mb-0"><strong>Description:</strong> {{ analysis.description|truncatewords:30 }}</p>
+            </div>
+        </div>
+        
+        <!-- Keyword Suggestions -->
+        <div class="keyword-card">
+            <h4 class="mb-3"><i class="fas fa-key"></i> Keyword Suggestions</h4>
+            {% if analysis.keyword_suggestions %}
+                {% for keyword in analysis.keyword_suggestions %}
+                <span class="keyword-tag">{{ keyword }}</span>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No keyword suggestions available</p>
+            {% endif %}
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-lightbulb"></i> Optimization Recommendations
+            </div>
+            <div class="card-body">
+                {% if analysis.recommendations %}
+                    {% for rec in analysis.recommendations %}
+                    <div class="recommendation-card d-flex">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <div class="recommendation-title">{{ rec.title }}</div>
+                            <div class="recommendation-text">{{ rec.description }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recommendations available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="my-4">
+{% endfor %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-search"></i>
+    </div>
+    <h3 class="empty-state-title">No SEO Analyses Yet</h3>
+    <p class="empty-state-description">
+        Use the form above to analyze your video's SEO and get optimization recommendations
+    </p>
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-resize textarea
+    const textarea = document.getElementById('description');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+</script>
+{% endblock %}

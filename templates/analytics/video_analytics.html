@@ -1,0 +1,537 @@
+{% extends 'base_sidebar.html' %}
+
+{% block title %}Video Analytics - CreatorFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-header {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-lg);
+        position: relative;
+    }
+    
+    .video-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .video-id {
+        font-family: var(--font-mono);
+        font-size: 0.875rem;
+        color: var(--gray-medium);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+    
+    .metric-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        text-align: center;
+        transition: var(--transition-smooth);
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 4px 4px 0 rgba(220, 38, 38, 0.2);
+        border-color: var(--accent-red);
+    }
+    
+    .metric-icon {
+        font-size: 1.5rem;
+        color: var(--accent-red);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .metric-value {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--ink);
+        line-height: 1;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .metric-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-medium);
+    }
+    
+    .chart-container {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+        position: relative;
+    }
+    
+    .chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .chart-title {
+        font-family: var(--font-display);
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: var(--space-md);
+        color: var(--ink);
+    }
+    
+    .period-selector {
+        display: flex;
+        gap: var(--space-xs);
+        margin-bottom: var(--space-md);
+        flex-wrap: wrap;
+    }
+    
+    .period-btn {
+        padding: 6px 16px;
+        border: 2px solid var(--accent-red-border);
+        background: var(--paper);
+        color: var(--gray-dark);
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    
+    .period-btn:hover {
+        border-color: var(--accent-red);
+        color: var(--accent-red);
+    }
+    
+    .period-btn.active {
+        background: var(--accent-red);
+        color: var(--paper);
+        border-color: var(--accent-red);
+    }
+    
+    .source-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-sm);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .source-item:last-child {
+        border-bottom: none;
+    }
+    
+    .source-name {
+        font-weight: 600;
+        color: var(--ink);
+    }
+    
+    .source-value {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--accent-red);
+    }
+    
+    .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-md);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="view-video-analytics" class="view-section">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-video"></i> Video Analytics</h1>
+            <p class="text-muted">Detailed performance metrics for your video</p>
+        </div>
+    </div>
+
+<!-- Video Header -->
+<div class="video-header">
+    <div class="video-id">
+        <i class="fas fa-hashtag"></i> Video ID: {{ video_id }}
+    </div>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <small class="text-muted">Period: {{ start_date }} to {{ end_date }}</small>
+        </div>
+        <div>
+            <a href="{% url 'analytics:export_video_metrics_csv' video_id %}?period={{ time_period }}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="{% url 'analytics:export_video_metrics_pdf' video_id %}?period={{ time_period }}" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Time Period Selector -->
+<div class="period-selector">
+    <a href="?period=7" class="period-btn {% if time_period == 7 %}active{% endif %}">7 Days</a>
+    <a href="?period=30" class="period-btn {% if time_period == 30 %}active{% endif %}">30 Days</a>
+    <a href="?period=90" class="period-btn {% if time_period == 90 %}active{% endif %}">90 Days</a>
+</div>
+
+<!-- Key Metrics -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-eye"></i>
+        </div>
+        <div class="metric-value">{{ total_views|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Total Views</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="metric-value">{{ total_watch_time|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Watch Time (min)</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-thumbs-up"></i>
+        </div>
+        <div class="metric-value">{{ total_likes|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Likes</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-comments"></i>
+        </div>
+        <div class="metric-value">{{ total_comments|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Comments</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-share"></i>
+        </div>
+        <div class="metric-value">{{ total_shares|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Shares</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-heart"></i>
+        </div>
+        <div class="metric-value">{{ engagement_rate|default:0|floatformat:2 }}%</div>
+        <div class="metric-label">Engagement Rate</div>
+    </div>
+</div>
+
+<!-- Performance Trends -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-area"></i> Views Over Time</h3>
+            <canvas id="viewsChart" height="200"></canvas>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-line"></i> Watch Time Over Time</h3>
+            <canvas id="watchTimeChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Audience Retention -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-bar"></i> Audience Retention</h3>
+            {% if retention_data %}
+            <canvas id="retentionChart" height="150"></canvas>
+            {% else %}
+            <div class="empty-state">
+                <p class="text-muted">Retention data not available for this video</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Traffic Sources & Demographics -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-map-marker-alt"></i> Traffic Sources</h3>
+            {% if traffic_sources %}
+            <div class="mt-3">
+                {% for source in traffic_sources %}
+                <div class="source-item">
+                    <span class="source-name">
+                        <i class="fas fa-circle" style="font-size: 0.5rem; color: var(--accent-red);"></i>
+                        {{ source.source|default:"Unknown" }}
+                    </span>
+                    <span class="source-value">{{ source.views|default:0|floatformat:0 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p class="text-muted">Traffic source data not available</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-users"></i> Demographics</h3>
+            {% if demographics.age_gender or demographics.geography %}
+            <canvas id="demographicsChart" height="200"></canvas>
+            {% else %}
+            <div class="empty-state">
+                <p class="text-muted">Demographics data not available</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Chart.js configuration
+    Chart.defaults.font.family = "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.color = '#6B7280';
+    
+    const chartColors = {
+        primary: '#DC2626',
+        secondary: '#EF4444',
+        success: '#10B981',
+        grid: 'rgba(0, 0, 0, 0.05)'
+    };
+    
+    // Views Chart
+    const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+    new Chart(viewsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_data.dates|safe }},
+            datasets: [{
+                label: 'Views',
+                data: {{ trend_data.views|safe }},
+                borderColor: chartColors.primary,
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: chartColors.primary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Watch Time Chart
+    const watchTimeCtx = document.getElementById('watchTimeChart').getContext('2d');
+    new Chart(watchTimeCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_data.dates|safe }},
+            datasets: [{
+                label: 'Watch Time (minutes)',
+                data: {{ trend_data.watch_time|safe }},
+                borderColor: chartColors.secondary,
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: chartColors.secondary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    {% if retention_data %}
+    // Retention Chart
+    const retentionCtx = document.getElementById('retentionChart').getContext('2d');
+    new Chart(retentionCtx, {
+        type: 'line',
+        data: {
+            labels: {{ retention_data.timestamps|default:"[]"|safe }},
+            datasets: [{
+                label: 'Retention %',
+                data: {{ retention_data.percentages|default:"[]"|safe }},
+                borderColor: chartColors.success,
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: chartColors.grid
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    {% if demographics.age_gender or demographics.geography %}
+    // Demographics Chart
+    const demographicsCtx = document.getElementById('demographicsChart').getContext('2d');
+    new Chart(demographicsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ demographics.labels|default:"[]"|safe }},
+            datasets: [{
+                data: {{ demographics.values|default:"[]"|safe }},
+                backgroundColor: [
+                    '#DC2626',
+                    '#EF4444',
+                    '#F87171',
+                    '#FCA5A5',
+                    '#FEE2E2'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

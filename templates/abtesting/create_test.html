@@ -1,0 +1,863 @@
+{% extends 'base_sidebar.html' %} 
+{% load static %} 
+{% block title %}Create A/B Test - CreatorFlow{% endblock %} 
+{% block extra_css %}
+<style>
+  .form-panel {
+    background: var(--paper);
+    border: var(--panel-border);
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 20px;
+  }
+
+  .variant-card {
+    background: var(--glass);
+    border: 2px solid var(--gray-wash);
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 0;
+  }
+
+  .variant-header {
+    font-family: "Oswald", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--accent-red);
+  }
+
+  .form-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .test-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .test-type-option {
+    background: var(--paper);
+    border: 3px solid var(--gray-wash);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .test-type-option:hover {
+    border-color: var(--accent-red);
+    transform: translateY(-2px);
+  }
+
+  .test-type-option.selected {
+    border-color: var(--accent-red);
+    background: rgba(255, 59, 48, 0.05);
+  }
+
+  .test-type-option input[type="radio"] {
+    display: none;
+  }
+
+  .test-type-icon {
+    font-size: 2.5rem;
+    color: var(--accent-red);
+    margin-bottom: 10px;
+  }
+
+  .variant-fields {
+    display: none;
+  }
+
+  .variant-fields.active {
+    display: block;
+  }
+</style>
+{% endblock %} 
+{% block content %}
+<div id="view-abtesting-create" class="view-section">
+  <div class="create-test">
+    <div class="mb-4">
+      <h1
+        class="display-4"
+        style="font-family: 'Oswald', sans-serif; font-weight: 700"
+      >
+        <i class="fas fa-flask"></i> Create A/B Test
+      </h1>
+      <p class="text-muted">
+        Test different variants to optimize your video performance
+      </p>
+    </div>
+
+    <form method="post" id="createTestForm">
+      {% csrf_token %}
+
+      <!-- Video Information -->
+      <div class="form-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+          Video Information
+        </h3>
+
+        <div class="mb-3">
+          <label for="video_id" class="form-label">Video ID *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="video_id"
+            name="video_id"
+            required
+            placeholder="e.g., dQw4w9WgXcQ"
+          />
+          <small class="text-muted">The YouTube video ID to test</small>
+        </div>
+
+        <div class="mb-3">
+          <label for="video_title" class="form-label">Video Title *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="video_title"
+            name="video_title"
+            required
+            placeholder="Enter the video title"
+          />
+        </div>
+      </div>
+
+      <!-- Test Type & Variants - Sidebar Layout -->
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 300px 1fr;
+          gap: var(--space-5);
+          margin-bottom: var(--space-5);
+        "
+      >
+        <!-- LEFT SIDEBAR - Test Type Selection -->
+        <div
+          class="card"
+          style="position: sticky; top: var(--space-5); height: fit-content"
+        >
+          <div class="card-header">
+            <h3>Test Type</h3>
+            <p>Choose what to test</p>
+          </div>
+          <div class="card-body" style="padding: var(--space-5)">
+            <div
+              style="display: flex; flex-direction: column; gap: var(--space-3)"
+            >
+              <!-- Thumbnail Option -->
+              <label
+                class="test-type-option"
+                data-type="thumbnail"
+                style="
+                  background: var(--paper);
+                  border: 2px solid var(--gray-300);
+                  padding: var(--space-4);
+                  cursor: pointer;
+                  transition: all var(--transition-base);
+                  border-radius: var(--radius-md);
+                  display: block;
+                "
+              >
+                <input
+                  type="radio"
+                  name="test_type"
+                  value="thumbnail"
+                  required
+                  style="display: none"
+                />
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <div
+                    style="
+                      width: 40px;
+                      height: 40px;
+                      border-radius: var(--radius-md);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: var(--text-xl);
+                      background: var(--gray-100);
+                      color: var(--ink);
+                    "
+                  >
+                    <i class="fas fa-image"></i>
+                  </div>
+                  <div style="flex: 1">
+                    <h5
+                      style="
+                        font-family: var(--font-display);
+                        font-weight: var(--font-bold);
+                        text-transform: uppercase;
+                        margin: 0 0 var(--space-1) 0;
+                        color: var(--ink);
+                        font-size: var(--text-sm);
+                      "
+                    >
+                      Thumbnail
+                    </h5>
+                    <p
+                      style="
+                        color: var(--gray-600);
+                        font-size: var(--text-xs);
+                        margin: 0;
+                        line-height: var(--leading-tight);
+                      "
+                    >
+                      Test different images
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Title Option -->
+              <label
+                class="test-type-option"
+                data-type="title"
+                style="
+                  background: var(--paper);
+                  border: 2px solid var(--gray-300);
+                  padding: var(--space-4);
+                  cursor: pointer;
+                  transition: all var(--transition-base);
+                  border-radius: var(--radius-md);
+                  display: block;
+                "
+              >
+                <input
+                  type="radio"
+                  name="test_type"
+                  value="title"
+                  required
+                  style="display: none"
+                />
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <div
+                    style="
+                      width: 40px;
+                      height: 40px;
+                      border-radius: var(--radius-md);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: var(--text-xl);
+                      background: var(--gray-100);
+                      color: var(--ink);
+                    "
+                  >
+                    <i class="fas fa-heading"></i>
+                  </div>
+                  <div style="flex: 1">
+                    <h5
+                      style="
+                        font-family: var(--font-display);
+                        font-weight: var(--font-bold);
+                        text-transform: uppercase;
+                        margin: 0 0 var(--space-1) 0;
+                        color: var(--ink);
+                        font-size: var(--text-sm);
+                      "
+                    >
+                      Title
+                    </h5>
+                    <p
+                      style="
+                        color: var(--gray-600);
+                        font-size: var(--text-xs);
+                        margin: 0;
+                        line-height: var(--leading-tight);
+                      "
+                    >
+                      Test different titles
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Description Option -->
+              <label
+                class="test-type-option"
+                data-type="description"
+                style="
+                  background: var(--paper);
+                  border: 2px solid var(--gray-300);
+                  padding: var(--space-4);
+                  cursor: pointer;
+                  transition: all var(--transition-base);
+                  border-radius: var(--radius-md);
+                  display: block;
+                "
+              >
+                <input
+                  type="radio"
+                  name="test_type"
+                  value="description"
+                  required
+                  style="display: none"
+                />
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <div
+                    style="
+                      width: 40px;
+                      height: 40px;
+                      border-radius: var(--radius-md);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: var(--text-xl);
+                      background: var(--gray-100);
+                      color: var(--ink);
+                    "
+                  >
+                    <i class="fas fa-align-left"></i>
+                  </div>
+                  <div style="flex: 1">
+                    <h5
+                      style="
+                        font-family: var(--font-display);
+                        font-weight: var(--font-bold);
+                        text-transform: uppercase;
+                        margin: 0 0 var(--space-1) 0;
+                        color: var(--ink);
+                        font-size: var(--text-sm);
+                      "
+                    >
+                      Description
+                    </h5>
+                    <p
+                      style="
+                        color: var(--gray-600);
+                        font-size: var(--text-xs);
+                        margin: 0;
+                        line-height: var(--leading-tight);
+                      "
+                    >
+                      Test descriptions
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Combined Option -->
+              <label
+                class="test-type-option"
+                data-type="combined"
+                style="
+                  background: var(--paper);
+                  border: 2px solid var(--gray-300);
+                  padding: var(--space-4);
+                  cursor: pointer;
+                  transition: all var(--transition-base);
+                  border-radius: var(--radius-md);
+                  display: block;
+                "
+              >
+                <input
+                  type="radio"
+                  name="test_type"
+                  value="combined"
+                  required
+                  style="display: none"
+                />
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <div
+                    style="
+                      width: 40px;
+                      height: 40px;
+                      border-radius: var(--radius-md);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: var(--text-xl);
+                      background: var(--gray-100);
+                      color: var(--ink);
+                    "
+                  >
+                    <i class="fas fa-layer-group"></i>
+                  </div>
+                  <div style="flex: 1">
+                    <h5
+                      style="
+                        font-family: var(--font-display);
+                        font-weight: var(--font-bold);
+                        text-transform: uppercase;
+                        margin: 0 0 var(--space-1) 0;
+                        color: var(--ink);
+                        font-size: var(--text-sm);
+                      "
+                    >
+                      Combined
+                    </h5>
+                    <p
+                      style="
+                        color: var(--gray-600);
+                        font-size: var(--text-xs);
+                        margin: 0;
+                        line-height: var(--leading-tight);
+                      "
+                    >
+                      Thumbnail + title pairs
+                    </p>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE - Variants Section -->
+        <div>
+          <div class="card">
+            <div
+              class="card-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <h3 style="margin: 0">Variants (2-3)</h3>
+                <p style="margin: 0">Configure different versions to test</p>
+              </div>
+
+              <!-- Add Variant Button -->
+              <button type="button" class="btn btn-outline" id="addVariantBtn">
+                <i class="fas fa-plus"></i>
+                <span>Add Variant C</span>
+              </button>
+            </div>
+            <div class="card-body" style="padding: var(--space-6)">
+              <!-- Variants Grid Container -->
+              <div
+                id="variantsContainer"
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                  gap: var(--space-5);
+                  margin-bottom: var(--space-5);
+                "
+              >
+                <!-- Variant A -->
+                <div class="variant-card">
+                  <div class="variant-header">Variant A</div>
+                  <input type="hidden" name="variant_name[]" value="A" />
+
+                  <div class="variant-fields thumbnail-field">
+                    <div class="mb-3">
+                      <label class="form-label">Thumbnail URL</label>
+                      <input
+                        type="url"
+                        class="form-control"
+                        name="variant_thumbnail[]"
+                        placeholder="https://example.com/thumbnail-a.jpg"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="variant-fields title-field">
+                    <div class="mb-3">
+                      <label class="form-label">Title</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="variant_title[]"
+                        placeholder="Enter title for variant A"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="variant-fields description-field">
+                    <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea
+                        class="form-control"
+                        name="variant_description[]"
+                        rows="4"
+                        placeholder="Enter description for variant A"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Variant B -->
+                <div class="variant-card">
+                  <div class="variant-header">Variant B</div>
+                  <input type="hidden" name="variant_name[]" value="B" />
+
+                  <div class="variant-fields thumbnail-field">
+                    <div class="mb-3">
+                      <label class="form-label">Thumbnail URL</label>
+                      <input
+                        type="url"
+                        class="form-control"
+                        name="variant_thumbnail[]"
+                        placeholder="https://example.com/thumbnail-b.jpg"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="variant-fields title-field">
+                    <div class="mb-3">
+                      <label class="form-label">Title</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="variant_title[]"
+                        placeholder="Enter title for variant B"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="variant-fields description-field">
+                    <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea
+                        class="form-control"
+                        name="variant_description[]"
+                        rows="4"
+                        placeholder="Enter description for variant B"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Type Selection
+        <div class="form-panel">
+            <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px;">Test Type</h3>
+            
+            <div class="test-type-selector">
+                <label class="test-type-option" data-type="thumbnail">
+                    <input type="radio" name="test_type" value="thumbnail" required>
+                    <div class="test-type-icon"><i class="fas fa-image"></i></div>
+                    <h5 style="font-family: 'Oswald', sans-serif;">Thumbnail</h5>
+                    <p class="text-muted mb-0"><small>Test different thumbnail images</small></p>
+                </label>
+                
+                <label class="test-type-option" data-type="title">
+                    <input type="radio" name="test_type" value="title" required>
+                    <div class="test-type-icon"><i class="fas fa-heading"></i></div>
+                    <h5 style="font-family: 'Oswald', sans-serif;">Title</h5>
+                    <p class="text-muted mb-0"><small>Test different video titles</small></p>
+                </label>
+                
+                <label class="test-type-option" data-type="description">
+                    <input type="radio" name="test_type" value="description" required>
+                    <div class="test-type-icon"><i class="fas fa-align-left"></i></div>
+                    <h5 style="font-family: 'Oswald', sans-serif;">Description</h5>
+                    <p class="text-muted mb-0"><small>Test different descriptions</small></p>
+                </label>
+                
+                <label class="test-type-option" data-type="combined">
+                    <input type="radio" name="test_type" value="combined" required>
+                    <div class="test-type-icon"><i class="fas fa-layer-group"></i></div>
+                    <h5 style="font-family: 'Oswald', sans-serif;">Combined</h5>
+                    <p class="text-muted mb-0"><small>Test thumbnail + title pairs</small></p>
+                </label>
+            </div>
+        </div>
+        
+        Variants
+        <div class="form-panel">
+            <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px;">Variants (2-3)</h3>
+            
+            <div id="variantsContainer">
+                Variant A
+                <div class="variant-card">
+                    <div class="variant-header">Variant A</div>
+                    <input type="hidden" name="variant_name[]" value="A">
+                    
+                    <div class="variant-fields thumbnail-field">
+                        <div class="mb-3">
+                            <label class="form-label">Thumbnail URL</label>
+                            <input type="url" class="form-control" name="variant_thumbnail[]" 
+                                   placeholder="https://example.com/thumbnail-a.jpg">
+                        </div>
+                    </div>
+                    
+                    <div class="variant-fields title-field">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" name="variant_title[]" 
+                                   placeholder="Enter title for variant A">
+                        </div>
+                    </div>
+                    
+                    <div class="variant-fields description-field">
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="variant_description[]" rows="4" 
+                                      placeholder="Enter description for variant A"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                Variant B
+                <div class="variant-card">
+                    <div class="variant-header">Variant B</div>
+                    <input type="hidden" name="variant_name[]" value="B">
+                    
+                    <div class="variant-fields thumbnail-field">
+                        <div class="mb-3">
+                            <label class="form-label">Thumbnail URL</label>
+                            <input type="url" class="form-control" name="variant_thumbnail[]" 
+                                   placeholder="https://example.com/thumbnail-b.jpg">
+                        </div>
+                    </div>
+                    
+                    <div class="variant-fields title-field">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" name="variant_title[]" 
+                                   placeholder="Enter title for variant B">
+                        </div>
+                    </div>
+                    
+                    <div class="variant-fields description-field">
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="variant_description[]" rows="4" 
+                                      placeholder="Enter description for variant B"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-outline-dark" id="addVariantBtn">
+                <i class="fas fa-plus"></i> Add Variant C
+            </button>
+        </div> -->
+
+      <!-- Test Configuration -->
+      <div class="form-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+          Test Configuration
+        </h3>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="duration_hours" class="form-label"
+                >Test Duration (hours) *</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="duration_hours"
+                name="duration_hours"
+                required
+                min="1"
+                value="48"
+              />
+              <small class="text-muted">How long the test should run</small>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="rotation_frequency_hours" class="form-label"
+                >Rotation Frequency (hours) *</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="rotation_frequency_hours"
+                name="rotation_frequency_hours"
+                required
+                min="1"
+                value="6"
+              />
+              <small class="text-muted">How often to switch variants</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="performance_threshold" class="form-label"
+                >Performance Threshold</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="performance_threshold"
+                name="performance_threshold"
+                step="0.01"
+                min="0"
+                max="1"
+                value="0.05"
+              />
+              <small class="text-muted"
+                >Minimum improvement required (0.05 = 5%)</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3 mt-4">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="auto_select_winner"
+                  name="auto_select_winner"
+                  checked
+                />
+                <label class="form-check-label" for="auto_select_winner">
+                  Automatically select winner when test completes
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Buttons -->
+      <div class="d-flex justify-content-between">
+        <a
+          href="{% url 'abtesting:test_list' %}"
+          class="btn btn-outline-dark btn-lg"
+        >
+          <i class="fas fa-times"></i> Cancel
+        </a>
+        <button type="submit" class="btn btn-dark btn-lg">
+          <i class="fas fa-check"></i> Create Test
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  let variantCount = 2;
+
+  // Test type selection
+  document.querySelectorAll(".test-type-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      document
+        .querySelectorAll(".test-type-option")
+        .forEach((opt) => opt.classList.remove("selected"));
+      this.classList.add("selected");
+
+      const testType = this.dataset.type;
+      updateVariantFields(testType);
+    });
+  });
+
+  function updateVariantFields(testType) {
+    // Hide all variant fields
+    document.querySelectorAll(".variant-fields").forEach((field) => {
+      field.classList.remove("active");
+    });
+
+    // Show relevant fields based on test type
+    if (testType === "thumbnail") {
+      document.querySelectorAll(".thumbnail-field").forEach((field) => {
+        field.classList.add("active");
+      });
+    } else if (testType === "title") {
+      document.querySelectorAll(".title-field").forEach((field) => {
+        field.classList.add("active");
+      });
+    } else if (testType === "description") {
+      document.querySelectorAll(".description-field").forEach((field) => {
+        field.classList.add("active");
+      });
+    } else if (testType === "combined") {
+      document
+        .querySelectorAll(".thumbnail-field, .title-field")
+        .forEach((field) => {
+          field.classList.add("active");
+        });
+    }
+  }
+
+  // Add variant C
+  document
+    .getElementById("addVariantBtn")
+    .addEventListener("click", function () {
+      if (variantCount >= 3) {
+        alert("Maximum 3 variants allowed");
+        return;
+      }
+
+      variantCount++;
+      const variantLetter = String.fromCharCode(64 + variantCount); // C
+
+      const variantCard = document.createElement("div");
+      variantCard.className = "variant-card";
+      variantCard.innerHTML = `
+            <div class="variant-header">Variant ${variantLetter}</div>
+            <input type="hidden" name="variant_name[]" value="${variantLetter}">
+            
+            <div class="variant-fields thumbnail-field">
+                <div class="mb-3">
+                    <label class="form-label">Thumbnail URL</label>
+                    <input type="url" class="form-control" name="variant_thumbnail[]" 
+                           placeholder="https://example.com/thumbnail-${variantLetter.toLowerCase()}.jpg">
+                </div>
+            </div>
+            
+            <div class="variant-fields title-field">
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" name="variant_title[]" 
+                           placeholder="Enter title for variant ${variantLetter}">
+                </div>
+            </div>
+            
+            <div class="variant-fields description-field">
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="variant_description[]" rows="4" 
+                              placeholder="Enter description for variant ${variantLetter}"></textarea>
+                </div>
+            </div>
+        `;
+
+      document.getElementById("variantsContainer").appendChild(variantCard);
+
+      // Update fields based on current test type
+      const selectedType = document.querySelector(".test-type-option.selected");
+      if (selectedType) {
+        updateVariantFields(selectedType.dataset.type);
+      }
+
+      // Hide add button after adding variant C
+      this.style.display = "none";
+    });
+</script>
+{% endblock %}

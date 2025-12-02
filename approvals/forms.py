@@ -201,3 +201,81 @@ class CreatorDirectUploadForm(forms.Form):
                 raise forms.ValidationError('Please upload a valid video file.')
         
         return cleaned_data
+
+
+class ThumbnailUploadForm(forms.Form):
+    """Form for uploading custom thumbnails during video upload."""
+    
+    THUMBNAIL_SOURCE_CHOICES = [
+        ('none', 'Use YouTube auto-generated thumbnail'),
+        ('upload', 'Upload from computer'),
+        ('drive', 'Select from Google Drive'),
+        ('video_frame', 'Extract frame from video'),
+    ]
+    
+    thumbnail_source = forms.ChoiceField(
+        choices=THUMBNAIL_SOURCE_CHOICES,
+        widget=forms.RadioSelect(attrs={
+            'class': 'form-check-input'
+        }),
+        label='Thumbnail Source',
+        initial='none',
+        help_text='Choose how to set the video thumbnail'
+    )
+    
+    thumbnail_file = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/jpeg,image/jpg,image/png'
+        }),
+        label='Upload Thumbnail',
+        help_text='JPG or PNG, max 2MB, minimum 1280x720 pixels'
+    )
+    
+    drive_file_id = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+        label='Google Drive File ID'
+    )
+    
+    video_frame_time = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter time in seconds (e.g., 30)'
+        }),
+        label='Frame Time (seconds)',
+        help_text='Extract a frame at this timestamp from the video'
+    )
+    
+    def clean(self):
+        """Validate that appropriate fields are provided based on thumbnail_source."""
+        cleaned_data = super().clean()
+        source = cleaned_data.get('thumbnail_source')
+        thumbnail_file = cleaned_data.get('thumbnail_file')
+        drive_file_id = cleaned_data.get('drive_file_id')
+        video_frame_time = cleaned_data.get('video_frame_time')
+        
+        if source == 'upload' and not thumbnail_file:
+            raise forms.ValidationError('Please upload a thumbnail file.')
+        
+        if source == 'drive' and not drive_file_id:
+            raise forms.ValidationError('Please select a thumbnail from Google Drive.')
+        
+        if source == 'video_frame' and video_frame_time is None:
+            raise forms.ValidationError('Please specify the time in seconds for frame extraction.')
+        
+        # Validate uploaded thumbnail file
+        if source == 'upload' and thumbnail_file:
+            # Check file type
+            content_type = thumbnail_file.content_type
+            if content_type not in ['image/jpeg', 'image/jpg', 'image/png']:
+                raise forms.ValidationError('Thumbnail must be JPG or PNG format.')
+            
+            # Check file size (max 2MB)
+            if thumbnail_file.size > 2 * 1024 * 1024:
+                raise forms.ValidationError('Thumbnail file size must not exceed 2MB.')
+        
+        return cleaned_data

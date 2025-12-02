@@ -1,88 +1,179 @@
-{% extends 'base.html' %}
-
-{% block title %}Register - Creator Backoffice Platform{% endblock %}
-
+{% extends 'base.html' %} 
+{% block title %}Register - Creator Backoffice Platform{% endblock %} 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Create Your Account</h2>
-                
-                {% if invited_user %}
-                    <div class="alert alert-info">
-                        <strong>You've been invited!</strong><br>
-                        Role: <strong>{{ invited_user.get_role_display }}</strong><br>
-                        {% if invited_user.creator %}
-                            Team: <strong>{{ invited_user.creator.username }}'s team</strong>
-                        {% endif %}
-                    </div>
-                {% endif %}
-                
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.username.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.email.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.password1.errors.0 }}
-                            </div>
-                        {% endif %}
-                        <small class="form-text text-muted">
-                            Your password must contain at least 8 characters and can't be entirely numeric.
-                        </small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.password2.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors.0 }}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Create Account</button>
-                    </div>
-                </form>
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Create Your Account</h2>
+
+        {% if invited_user %}
+        <div class="alert alert-info">
+          <strong>You've been invited!</strong><br />
+          Role: <strong>{{ invited_user.get_role_display }}</strong><br />
+          {% if invited_user.creator %} Team:
+          <strong>{{ invited_user.creator.username }}'s team</strong>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="{{ form.username.id_for_label }}" class="form-label"
+              >Username</label
+            >
+            {{ form.username }} {% if form.username.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.username.errors.0 }}
             </div>
-        </div>
-        
-        <div class="text-center mt-3">
-            <p class="text-muted">
-                Already have an account? <a href="{% url 'accounts:login' %}">Login here</a>
-            </p>
-        </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.email.id_for_label }}" class="form-label"
+              >Email</label
+            >
+            {{ form.email }} {% if form.email.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.email.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.password1.id_for_label }}" class="form-label"
+              >Password</label
+            >
+            {{ form.password1 }} {% if form.password1.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.password1.errors.0 }}
+            </div>
+            {% endif %}
+            <small class="form-text text-muted">
+              Your password must contain at least 8 characters and can't be
+              entirely numeric.
+            </small>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.password2.id_for_label }}" class="form-label"
+              >Confirm Password</label
+            >
+            {{ form.password2 }} {% if form.password2.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.password2.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+          {% endif %}
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              Create Account
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+
+    <div class="text-center mt-3">
+      <p class="text-muted">
+        Already have an account?
+        <a href="{% url 'accounts:login' %}">Login here</a>
+      </p>
+    </div>
+  </div>
 </div>
+
+<div
+  style="
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  "
+>
+  <div class="auth-card" style="max-width: 420px">
+    <h2 style="margin-bottom: 20px">Create Your Account</h2>
+
+    {% if invited_user %}
+    <div class="alert alert-info" style="margin-bottom: 20px">
+      <strong>You've been invited!</strong><br />
+      Role: <strong>{{ invited_user.get_role_display }}</strong><br />
+      {% if invited_user.creator %} Team:
+      <strong>{{ invited_user.creator.username }}'s team</strong>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Username -->
+      <div class="form-field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }} {% if form.username.errors %}
+        <div class="invalid-feedback">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Email -->
+      <div class="form-field">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }} {% if form.email.errors %}
+        <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Password -->
+      <div class="form-field">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {{ form.password1 }} {% if form.password1.errors %}
+        <div class="invalid-feedback">{{ form.password1.errors.0 }}</div>
+        {% endif %}
+        <small style="color: #666; font-size: 0.75rem">
+          Your password must contain at least 8 characters and can't be entirely
+          numeric.
+        </small>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-field">
+        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+        {{ form.password2 }} {% if form.password2.errors %}
+        <div class="invalid-feedback">{{ form.password2.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="invalid-feedback" style="margin-bottom: 10px">
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        style="width: 100%; margin-top: 10px"
+      >
+        Create Account
+      </button>
+    </form>
+
+    <div class="register-box" style="margin-top: 15px">
+      Already have an account?
+      <br />
+      <a href="{% url 'accounts:login' %}" class="btn" style="margin-top: 10px">
+        Login Here
+      </a>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

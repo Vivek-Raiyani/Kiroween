@@ -1,0 +1,630 @@
+{% extends 'base_sidebar.html' %} 
+{% load static %} {% block title %}TestResults - {{ test.video_title }} - CreatorFlow{% endblock %} 
+{% block extra_css %}
+<style>
+  .results-panel {
+    background: var(--paper);
+    border: var(--panel-border);
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 20px;
+  }
+
+  .winner-banner {
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    border: 3px solid var(--ink);
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .winner-banner h2 {
+    font-family: "Oswald", sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .winner-banner .trophy-icon {
+    font-size: 4rem;
+    color: var(--ink);
+    margin-bottom: 15px;
+  }
+
+  .variant-comparison {
+    background: var(--glass);
+    border: 2px solid var(--gray-wash);
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+
+  .variant-comparison.winner {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.05);
+  }
+
+  .metric-bar {
+    height: 30px;
+    background: var(--gray-wash);
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 10px 0;
+    position: relative;
+  }
+
+  .metric-bar-fill {
+    height: 100%;
+    background: var(--accent-red);
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .metric-bar-fill.winner {
+    background: #ffd700;
+    color: var(--ink);
+  }
+
+  .improvement-badge {
+    background: #34c759;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-block;
+  }
+
+  .chart-container {
+    background: var(--paper);
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .log-entry {
+    padding: 10px 15px;
+    border-left: 3px solid var(--gray-wash);
+    margin-bottom: 10px;
+    background: var(--glass);
+  }
+</style>
+{% endblock %} 
+{% block content %}
+<div id="view-abtesting-results" class="view-section">
+  <div class="test-results">
+    <!-- Header -->
+    <div class="mb-4">
+      <h1
+        class="display-5"
+        style="font-family: 'Oswald', sans-serif; font-weight: 700"
+      >
+        <i class="fas fa-chart-bar"></i> Test Results
+      </h1>
+      <p class="text-muted">
+        {{ test.video_title }} · {{ test.get_test_type_display }} Test
+      </p>
+    </div>
+
+    <!-- Winner Banner -->
+    {% if improvement_data %}
+    <div class="winner-banner">
+      <div class="trophy-icon">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <h2>Variant {{ improvement_data.winner.variant_name }} Wins!</h2>
+      <p class="mb-0" style="font-size: 1.2rem; font-weight: 600">
+        CTR: {{ improvement_data.winner.ctr|floatformat:2 }}% · {{
+        improvement_data.winner.clicks|floatformat:0 }} clicks from {{
+        improvement_data.winner.impressions|floatformat:0 }} impressions
+      </p>
+    </div>
+
+    <!-- Improvement Summary -->
+    <div class="results-panel">
+      <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+        Performance Improvement
+      </h3>
+
+      {% for improvement in improvement_data.improvements %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span
+            ><strong>vs. Variant {{ improvement.variant_name }}</strong></span
+          >
+          <span class="improvement-badge">
+            +{{ improvement.improvement_percentage|floatformat:1 }}% improvement
+          </span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Element Impact Analysis (Combined Tests Only) -->
+    {% if test.test_type == 'combined' and element_impact %}
+    <div class="results-panel">
+      <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+        <i class="fas fa-chart-line"></i> Element Impact Analysis
+      </h3>
+
+      <div class="alert alert-info">
+        <i class="fas fa-lightbulb"></i>
+        <strong>{{ element_impact.analysis_message }}</strong>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <h5 style="font-family: 'Oswald', sans-serif">
+            <i class="fas fa-image"></i> Thumbnail Impact {% if
+            element_impact.primary_driver == 'thumbnail' %}
+            <span class="badge bg-success">Primary Driver</span>
+            {% endif %}
+          </h5>
+          <p class="text-muted small">
+            Average CTR by thumbnail across different titles
+          </p>
+
+          {% for thumb_url, data in element_impact.thumbnail_impact.items %}
+          <div
+            class="mb-3 p-3"
+            style="
+              background: var(--glass);
+              border-left: 3px solid var(--accent-red);
+            "
+          >
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Thumbnail {{ forloop.counter }}</strong>
+                <br />
+                <small class="text-muted"
+                  >Used in variants: {{ data.variants|join:", " }}</small
+                >
+              </div>
+              <div class="text-end">
+                <div
+                  style="
+                    font-family: 'Oswald', sans-serif;
+                    font-size: 1.5rem;
+                    color: var(--accent-red);
+                  "
+                >
+                  {{ data.avg_ctr|floatformat:2 }}%
+                </div>
+                <small class="text-muted">Avg CTR</small>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="mt-2">
+            <small class="text-muted">
+              <strong>Variance:</strong> {{
+              element_impact.thumbnail_variance|floatformat:4 }}
+            </small>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <h5 style="font-family: 'Oswald', sans-serif">
+            <i class="fas fa-heading"></i> Title Impact {% if
+            element_impact.primary_driver == 'title' %}
+            <span class="badge bg-success">Primary Driver</span>
+            {% endif %}
+          </h5>
+          <p class="text-muted small">
+            Average CTR by title across different thumbnails
+          </p>
+
+          {% for title_text, data in element_impact.title_impact.items %}
+          <div
+            class="mb-3 p-3"
+            style="
+              background: var(--glass);
+              border-left: 3px solid var(--accent-red);
+            "
+          >
+            <div class="d-flex justify-content-between align-items-start">
+              <div style="flex: 1">
+                <strong>{{ title_text|truncatechars:50 }}</strong>
+                <br />
+                <small class="text-muted"
+                  >Used in variants: {{ data.variants|join:", " }}</small
+                >
+              </div>
+              <div class="text-end ms-3">
+                <div
+                  style="
+                    font-family: 'Oswald', sans-serif;
+                    font-size: 1.5rem;
+                    color: var(--accent-red);
+                  "
+                >
+                  {{ data.avg_ctr|floatformat:2 }}%
+                </div>
+                <small class="text-muted">Avg CTR</small>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="mt-2">
+            <small class="text-muted">
+              <strong>Variance:</strong> {{
+              element_impact.title_variance|floatformat:4 }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="mt-4 p-3"
+        style="background: var(--glass); border: 2px solid var(--accent-red)"
+      >
+        <h6 style="font-family: 'Oswald', sans-serif">
+          <i class="fas fa-info-circle"></i> How to Read This Analysis
+        </h6>
+        <p class="mb-0 small">
+          This analysis groups your variants by thumbnail and title to show
+          which element had more impact on performance. Higher variance
+          indicates that element had a stronger effect on CTR. The "Primary
+          Driver" is the element that showed the most variation in performance
+          across different combinations.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Variant Comparison -->
+    <div class="results-panel">
+      <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+        Variant Comparison
+      </h3>
+
+      {% for variant in variants %}
+      <div
+        class="variant-comparison {% if variant.is_winner %}winner{% endif %}"
+      >
+        <div class="row align-items-center mb-3">
+          <div class="col-md-2">
+            <h2
+              style="
+                font-family: 'Oswald', sans-serif;
+                font-size: 3rem;
+                margin: 0;
+                color: var(--accent-red);
+              "
+            >
+              {{ variant.variant_name }}
+            </h2>
+            {% if variant.is_winner %}
+            <span class="badge" style="background: #ffd700; color: var(--ink)">
+              <i class="fas fa-trophy"></i> Winner
+            </span>
+            {% endif %}
+          </div>
+
+          <div class="col-md-10">
+            <!-- Impressions -->
+            <div class="mb-2">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">Impressions</small>
+                <small
+                  ><strong
+                    >{{ variant.impressions|floatformat:0 }}</strong
+                  ></small
+                >
+              </div>
+              <div class="metric-bar">
+                <div
+                  class="metric-bar-fill {% if variant.is_winner %}winner{% endif %}"
+                  style="width: {% widthratio variant.impressions comparison_data.impressions|max 100 %}%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Clicks -->
+            <div class="mb-2">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">Clicks</small>
+                <small
+                  ><strong>{{ variant.clicks|floatformat:0 }}</strong></small
+                >
+              </div>
+              <div class="metric-bar">
+                <div
+                  class="metric-bar-fill {% if variant.is_winner %}winner{% endif %}"
+                  style="width: {% widthratio variant.clicks comparison_data.clicks|max 100 %}%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- CTR -->
+            <div class="mb-2">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">CTR</small>
+                <small><strong>{{ variant.ctr|floatformat:2 }}%</strong></small>
+              </div>
+              <div class="metric-bar">
+                <div
+                  class="metric-bar-fill {% if variant.is_winner %}winner{% endif %}"
+                  style="width: {% widthratio variant.ctr comparison_data.ctr|max 100 %}%"
+                >
+                  {{ variant.ctr|floatformat:2 }}%
+                </div>
+              </div>
+            </div>
+
+            <!-- Views -->
+            <div class="mb-0">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">Views</small>
+                <small
+                  ><strong>{{ variant.views|floatformat:0 }}</strong></small
+                >
+              </div>
+              <div class="metric-bar">
+                <div
+                  class="metric-bar-fill {% if variant.is_winner %}winner{% endif %}"
+                  style="width: {% widthratio variant.views comparison_data.views|max 100 %}%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variant Content -->
+        <div class="mt-3 pt-3" style="border-top: 1px solid var(--gray-wash)">
+          {% if test.test_type == 'combined' %}
+          <div
+            class="p-2"
+            style="
+              background: rgba(255, 59, 48, 0.05);
+              border-left: 3px solid var(--accent-red);
+            "
+          >
+            <p class="mb-1">
+              <small
+                ><strong><i class="fas fa-image"></i> Thumbnail:</strong> {{
+                variant.thumbnail_url|truncatechars:80 }}</small
+              >
+            </p>
+            <p class="mb-0">
+              <small
+                ><strong><i class="fas fa-heading"></i> Title:</strong> {{
+                variant.title }}</small
+              >
+            </p>
+          </div>
+          {% elif test.test_type == 'thumbnail' %}
+          <p class="mb-1">
+            <small
+              ><strong>Thumbnail:</strong> {{
+              variant.thumbnail_url|truncatechars:80 }}</small
+            >
+          </p>
+          {% elif test.test_type == 'title' %}
+          <p class="mb-1">
+            <small><strong>Title:</strong> {{ variant.title }}</small>
+          </p>
+          {% elif test.test_type == 'description' %}
+          <p class="mb-1">
+            <small
+              ><strong>Description:</strong> {{
+              variant.description|truncatechars:150 }}</small
+            >
+          </p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Performance Charts -->
+    <div class="results-panel">
+      <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+        Performance Charts
+      </h3>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5 style="font-family: 'Oswald', sans-serif">CTR Comparison</h5>
+            <canvas id="ctrChart"></canvas>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="chart-container">
+            <h5 style="font-family: 'Oswald', sans-serif">
+              Clicks vs Impressions
+            </h5>
+            <canvas id="clicksChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Details -->
+    <div class="results-panel">
+      <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+        Test Details
+      </h3>
+
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Test Type:</strong> {{ test.get_test_type_display }}</p>
+          <p><strong>Duration:</strong> {{ test.duration_hours }} hours</p>
+          <p>
+            <strong>Started:</strong> {{ test.start_date|date:"M d, Y H:i" }}
+          </p>
+          <p>
+            <strong>Completed:</strong> {{ test.completed_at|date:"M d, Y H:i"
+            }}
+          </p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Video ID:</strong> {{ test.video_id }}</p>
+          <p>
+            <strong>Rotation Frequency:</strong> {{
+            test.rotation_frequency_hours }} hours
+          </p>
+          <p>
+            <strong>Performance Threshold:</strong> {{
+            test.performance_threshold|floatformat:2 }}
+          </p>
+          <p>
+            <strong>Winner Applied:</strong>
+            {% if test.winner_variant.applied_at %} Yes ({{
+            test.winner_variant.applied_at|date:"M d, Y H:i" }}) {% else %} Not
+            yet {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="results-panel">
+      <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px">
+        Activity Log
+      </h3>
+
+      {% if logs %} {% for log in logs %}
+      <div class="log-entry">
+        <div class="d-flex justify-content-between">
+          <div>
+            <strong>{{ log.action|title }}</strong>
+            {% if log.user %} by {{ log.user.username }} {% endif %}
+          </div>
+          <small class="text-muted"
+            >{{ log.timestamp|date:"M d, Y H:i" }}</small
+          >
+        </div>
+      </div>
+      {% endfor %} {% else %}
+      <p class="text-muted">No activity logs available</p>
+      {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-between mt-4">
+      <a href="{% url 'abtesting:test_list' %}" class="btn btn-outline-dark">
+        <i class="fas fa-arrow-left"></i> Back to Tests
+      </a>
+
+      <div>
+        <a
+          href="{% url 'abtesting:test_detail' test.id %}"
+          class="btn btn-outline-dark"
+        >
+          <i class="fas fa-info-circle"></i> Test Details
+        </a>
+
+        {% if test.winner_variant and not test.winner_variant.applied_at %}
+        <form
+          method="post"
+          action="{% url 'abtesting:test_management' test.id %}"
+          class="d-inline"
+        >
+          {% csrf_token %}
+          <button
+            type="submit"
+            name="action"
+            value="apply_winner"
+            class="btn btn-dark"
+          >
+            <i class="fas fa-check"></i> Apply Winner to Video
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // CTR Comparison Chart
+  const ctrCtx = document.getElementById('ctrChart').getContext('2d');
+  new Chart(ctrCtx, {
+      type: 'bar',
+      data: {
+          labels: {{ comparison_data.variant_names|safe }},
+          datasets: [{
+              label: 'CTR (%)',
+              data: {{ comparison_data.ctr|safe }},
+              backgroundColor: [
+                  {% for variant in variants %}
+                      {% if variant.is_winner %}'#FFD700'{% else %}'#FF3B30'{% endif %}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+              ],
+              borderColor: '#000',
+              borderWidth: 2
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+              legend: {
+                  display: false
+              }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  title: {
+                      display: true,
+                      text: 'CTR (%)'
+                  }
+              }
+          }
+      }
+  });
+
+  // Clicks vs Impressions Chart
+  const clicksCtx = document.getElementById('clicksChart').getContext('2d');
+  new Chart(clicksCtx, {
+      type: 'bar',
+      data: {
+          labels: {{ comparison_data.variant_names|safe }},
+          datasets: [
+              {
+                  label: 'Impressions',
+                  data: {{ comparison_data.impressions|safe }},
+                  backgroundColor: 'rgba(128, 128, 128, 0.5)',
+                  borderColor: '#000',
+                  borderWidth: 2
+              },
+              {
+                  label: 'Clicks',
+                  data: {{ comparison_data.clicks|safe }},
+                  backgroundColor: '#FF3B30',
+                  borderColor: '#000',
+                  borderWidth: 2
+              }
+          ]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+              legend: {
+                  display: true,
+                  position: 'top'
+              }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+</script>
+{% endblock %}

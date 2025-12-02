@@ -1,0 +1,478 @@
+{% extends 'base_sidebar.html' %}
+
+{% block title %}Competitor Analysis - CreatorFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-competitor-card {
+        background: var(--paper);
+        border: 2px dashed var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-lg);
+        transition: var(--transition-smooth);
+    }
+    
+    .add-competitor-card:hover {
+        border-color: var(--accent-red);
+        border-style: solid;
+    }
+    
+    .comparison-table {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: var(--space-md);
+        position: relative;
+    }
+    
+    .comparison-table::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .table-header {
+        background: var(--ink);
+        color: var(--paper);
+        padding: var(--space-md);
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+    
+    .competitor-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+        gap: var(--space-md);
+        padding: var(--space-md);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        align-items: center;
+        transition: var(--transition-fast);
+    }
+    
+    .competitor-row:hover {
+        background: var(--gray-wash);
+    }
+    
+    .competitor-row:last-child {
+        border-bottom: none;
+    }
+    
+    .competitor-name {
+        font-weight: 700;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+    
+    .competitor-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-red);
+        color: var(--paper);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.125rem;
+    }
+    
+    .metric-value {
+        font-family: var(--font-display);
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--accent-red);
+    }
+    
+    .metric-label {
+        font-size: 0.75rem;
+        color: var(--gray-medium);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .chart-container {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+        position: relative;
+    }
+    
+    .chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .chart-title {
+        font-family: var(--font-display);
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: var(--space-md);
+        color: var(--ink);
+    }
+    
+    @media (max-width: 768px) {
+        .competitor-row {
+            grid-template-columns: 1fr;
+            gap: var(--space-xs);
+        }
+        
+        .metric-label {
+            display: inline-block;
+            margin-right: var(--space-xs);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="view-competitor-analysis" class="view-section">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-chart-pie"></i> Competitor Analysis</h1>
+            <p class="text-muted">Compare your channel's performance with competitors</p>
+        </div>
+    </div>
+
+<!-- Add Competitor Form -->
+<div class="add-competitor-card">
+    <h3 class="mb-3"><i class="fas fa-plus-circle"></i> Add Competitor Channel</h3>
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-5">
+            <label for="channel_id" class="form-label">Channel ID</label>
+            <input type="text" class="form-control" id="channel_id" name="channel_id" 
+                   placeholder="UCxxxxxxxxxxxxxxxxxx" required>
+            <small class="text-muted">Find this in the channel's URL</small>
+        </div>
+        <div class="col-md-5">
+            <label for="channel_name" class="form-label">Channel Name</label>
+            <input type="text" class="form-control" id="channel_name" name="channel_name" 
+                   placeholder="Competitor Channel Name" required>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-plus"></i> Add
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Competitor Comparison Table -->
+{% if competitors %}
+<div class="comparison-table">
+    <div class="table-header">
+        <i class="fas fa-users"></i> Channel Comparison
+    </div>
+    
+    <div class="competitor-row" style="background: var(--gray-wash); font-weight: 600;">
+        <div class="metric-label">Channel</div>
+        <div class="metric-label">Subscribers</div>
+        <div class="metric-label">Avg Views</div>
+        <div class="metric-label">Upload Freq</div>
+        <div class="metric-label">Actions</div>
+    </div>
+    
+    {% for competitor in competitors %}
+    <div class="competitor-row">
+        <div class="competitor-name">
+            <div class="competitor-icon">
+                {{ competitor.name|first|upper }}
+            </div>
+            <div>
+                <div>{{ competitor.name }}</div>
+                <small class="text-muted">{{ competitor.channel_id }}</small>
+            </div>
+        </div>
+        <div>
+            <div class="metric-value">{{ competitor.subscribers|default:0|floatformat:0 }}</div>
+            <div class="metric-label d-md-none">Subscribers</div>
+        </div>
+        <div>
+            <div class="metric-value">{{ competitor.avg_views|default:0|floatformat:0 }}</div>
+            <div class="metric-label d-md-none">Avg Views</div>
+        </div>
+        <div>
+            <div class="metric-value">{{ competitor.upload_frequency|default:0 }}/week</div>
+            <div class="metric-label d-md-none">Upload Freq</div>
+        </div>
+        <div>
+            <form method="post" action="{% url 'analytics:competitor_analysis' %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="remove">
+                <input type="hidden" name="competitor_id" value="{{ competitor.id }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                        onclick="return confirm('Remove this competitor?')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Side-by-Side Performance Charts -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-bar"></i> Subscriber Comparison</h3>
+            <canvas id="subscriberChart" height="250"></canvas>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-bar"></i> Average Views Comparison</h3>
+            <canvas id="viewsChart" height="250"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-line"></i> Upload Frequency Comparison</h3>
+            <canvas id="uploadChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-users"></i>
+    </div>
+    <h3 class="empty-state-title">No Competitors Added</h3>
+    <p class="empty-state-description">
+        Add competitor channels above to start tracking and comparing performance metrics
+    </p>
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if competitors %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Chart.js configuration
+    Chart.defaults.font.family = "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.color = '#6B7280';
+    
+    const chartColors = {
+        primary: '#DC2626',
+        secondary: '#EF4444',
+        tertiary: '#F87171',
+        quaternary: '#FCA5A5',
+        quinary: '#FEE2E2',
+        grid: 'rgba(0, 0, 0, 0.05)'
+    };
+    
+    // Prepare data
+    const competitorNames = [{% for c in competitors %}'{{ c.name|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const subscriberData = [{% for c in competitors %}{{ c.subscribers|default:0 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const avgViewsData = [{% for c in competitors %}{{ c.avg_views|default:0 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const uploadFreqData = [{% for c in competitors %}{{ c.upload_frequency|default:0 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+    
+    const colors = [
+        chartColors.primary,
+        chartColors.secondary,
+        chartColors.tertiary,
+        chartColors.quaternary,
+        chartColors.quinary
+    ];
+    
+    // Subscriber Comparison Chart
+    const subscriberCtx = document.getElementById('subscriberChart').getContext('2d');
+    new Chart(subscriberCtx, {
+        type: 'bar',
+        data: {
+            labels: competitorNames,
+            datasets: [{
+                label: 'Subscribers',
+                data: subscriberData,
+                backgroundColor: colors,
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Subscribers: ' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Average Views Comparison Chart
+    const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+    new Chart(viewsCtx, {
+        type: 'bar',
+        data: {
+            labels: competitorNames,
+            datasets: [{
+                label: 'Average Views',
+                data: avgViewsData,
+                backgroundColor: colors,
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Avg Views: ' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Upload Frequency Comparison Chart
+    const uploadCtx = document.getElementById('uploadChart').getContext('2d');
+    new Chart(uploadCtx, {
+        type: 'horizontalBar',
+        data: {
+            labels: competitorNames,
+            datasets: [{
+                label: 'Videos per Week',
+                data: uploadFreqData,
+                backgroundColor: chartColors.primary,
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.x + ' videos/week';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

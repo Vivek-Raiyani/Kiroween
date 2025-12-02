@@ -35,6 +35,12 @@ class Integration(models.Model):
         help_text='Token expiration timestamp'
     )
     
+    scopes = models.TextField(
+        blank=True,
+        default='',
+        help_text='Granted OAuth scopes (space-separated)'
+    )
+    
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text='When the integration was created'

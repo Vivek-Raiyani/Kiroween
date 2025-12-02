@@ -29,7 +29,7 @@ def role_required(roles):
                     'You do not have permission to access this page. '
                     f'Required role(s): {", ".join(roles)}.'
                 )
-                return redirect('permission_denied')
+                return redirect('accounts:permission_denied')
             
             return view_func(request, *args, **kwargs)
         return wrapper
@@ -91,3 +91,55 @@ def creator_only(view_func):
     Convenience decorator for creator-only views.
     """
     return role_required(['creator'])(view_func)
+
+
+def analytics_required(view_func):
+    """
+    Decorator to check if user has access to analytics features.
+    Only creators and managers can access analytics.
+    Editors are denied access.
+    
+    Usage:
+        @analytics_required
+        def analytics_view(request):
+            ...
+    """
+    @wraps(view_func)
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if request.user.role not in ['creator', 'manager']:
+            messages.error(
+                request,
+                'You do not have permission to access analytics. '
+                'Analytics features are only available to creators and managers.'
+            )
+            return redirect('accounts:permission_denied')
+        
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def abtest_required(view_func):
+    """
+    Decorator to check if user has access to A/B testing features.
+    Only creators and managers can access A/B testing.
+    Editors are denied access.
+    
+    Usage:
+        @abtest_required
+        def abtest_view(request):
+            ...
+    """
+    @wraps(view_func)
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if request.user.role not in ['creator', 'manager']:
+            messages.error(
+                request,
+                'You do not have permission to access A/B testing. '
+                'A/B testing features are only available to creators and managers.'
+            )
+            return redirect('accounts:permission_denied')
+        
+        return view_func(request, *args, **kwargs)
+    return wrapper

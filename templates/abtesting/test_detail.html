@@ -1,0 +1,795 @@
+{% extends 'base_sidebar.html' %} 
+{% load static %} 
+{% block title %}{{test.video_title }} - A/B Test - CreatorFlow{% endblock %} 
+{% block extra_css %}
+<style>
+  .detail-panel {
+    background: var(--paper);
+    border: var(--panel-border);
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 20px;
+  }
+
+  .status-badge {
+    font-family: "Oswald", sans-serif;
+    font-size: 1rem;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+  }
+
+  .status-draft {
+    background: var(--gray-wash);
+    color: var(--ink);
+  }
+  .status-active {
+    background: #34c759;
+    color: white;
+  }
+  .status-paused {
+    background: #ff9500;
+    color: white;
+  }
+  .status-completed {
+    background: var(--ink);
+    color: white;
+  }
+
+  .variant-card {
+    background: var(--glass);
+    border: 3px solid var(--gray-wash);
+    padding: 25px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .variant-card.current {
+    border-color: var(--accent-red);
+    background: rgba(255, 59, 48, 0.05);
+  }
+
+  .variant-card.winner {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.05);
+  }
+
+  .metric-value {
+    font-family: "Oswald", sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .metric-label {
+    font-size: 0.85rem;
+    color: var(--gray-wash);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .progress-bar-custom {
+    height: 12px;
+    background: var(--gray-wash);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent-red);
+    transition: width 0.3s ease;
+  }
+
+  .log-entry {
+    padding: 10px 15px;
+    border-left: 3px solid var(--gray-wash);
+    margin-bottom: 10px;
+    background: var(--glass);
+  }
+
+  .log-entry.important {
+    border-left-color: var(--accent-red);
+  }
+</style>
+{% endblock %} 
+{% block content %}
+<!-- <div id="view-abtesting-detail" class="view-section">
+<div class="test-detail">
+    Header
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="display-5" style="font-family: 'Oswald', sans-serif; font-weight: 700;">
+                <i class="fas fa-flask"></i> {{ test.video_title }}
+            </h1>
+            <p class="text-muted">{{ test.get_test_type_display }} Test · Video ID: {{ test.video_id }}</p>
+        </div>
+        <span class="status-badge status-{{ test.status }}">{{ test.get_status_display }}</span>
+    </div>
+    
+    Test Progress
+    {% if test.status == 'active' %}
+    <div class="detail-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 15px;">Test Progress</h3>
+        
+        <div class="progress-bar-custom">
+            <div class="progress-fill" style="width: {{ status_data.progress_percentage }}%"></div>
+        </div>
+        
+        <div class="row text-center mt-3">
+            <div class="col-md-4">
+                <div class="metric-label">Progress</div>
+                <div class="metric-value">{{ status_data.progress_percentage|floatformat:1 }}%</div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-label">Time Remaining</div>
+                <div class="metric-value">
+                    {% if status_data.time_remaining_seconds %}
+                        {{ status_data.time_remaining_seconds|floatformat:0|divisibleby:3600 }}h
+                    {% else %}
+                        --
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-label">Current Variant</div>
+                <div class="metric-value">
+                    {% if current_variant %}
+                        {{ current_variant.variant_name }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    Management Controls
+    <div class="detail-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 15px;">Test Controls</h3>
+        
+        <form method="post" action="{% url 'abtesting:test_management' test.id %}" class="d-inline">
+            {% csrf_token %}
+            
+            {% if test.status == 'draft' %}
+                <button type="submit" name="action" value="start" class="btn btn-dark">
+                    <i class="fas fa-play"></i> Start Test
+                </button>
+            {% elif test.status == 'active' %}
+                <button type="submit" name="action" value="pause" class="btn btn-warning">
+                    <i class="fas fa-pause"></i> Pause Test
+                </button>
+                <button type="submit" name="action" value="stop" class="btn btn-danger" 
+                        onclick="return confirm('Are you sure you want to stop this test early?')">
+                    <i class="fas fa-stop"></i> Stop Test
+                </button>
+                <button type="submit" name="action" value="rotate_variant" class="btn btn-outline-dark" 
+                        onclick="this.form.action_type.value='rotate_variant';">
+                    <i class="fas fa-sync"></i> Rotate Variant Now
+                </button>
+                <input type="hidden" name="action_type" value="">
+            {% elif test.status == 'paused' %}
+                <button type="submit" name="action" value="resume" class="btn btn-success">
+                    <i class="fas fa-play"></i> Resume Test
+                </button>
+                <button type="submit" name="action" value="stop" class="btn btn-danger" 
+                        onclick="return confirm('Are you sure you want to stop this test?')">
+                    <i class="fas fa-stop"></i> Stop Test
+                </button>
+            {% endif %}
+            
+            {% if test.status == 'completed' and test.winner_variant and not test.winner_variant.applied_at %}
+                <button type="submit" name="action" value="apply_winner" class="btn btn-dark">
+                    <i class="fas fa-check"></i> Apply Winner to Video
+                </button>
+            {% endif %}
+        </form>
+        
+        {% if winner_info and winner_info.has_winner and not test.winner_variant %}
+            <form method="post" action="{% url 'abtesting:test_management' test.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" name="action" value="select_winner" class="btn btn-success">
+                    <i class="fas fa-trophy"></i> Select Winner Automatically
+                </button>
+            </form>
+        {% endif %}
+        
+        {% if winner_info and not winner_info.has_winner %}
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="fas fa-info-circle"></i> {{ winner_info.message }}
+            </div>
+        {% endif %}
+    </div>
+    
+    Variant Performance
+    <div class="detail-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px;">Variant Performance</h3>
+        
+        {% for item in variants_data %}
+        <div class="variant-card {% if item.is_current %}current{% endif %} {% if item.variant.is_winner %}winner{% endif %}">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <h2 style="font-family: 'Oswald', sans-serif; font-size: 3rem; margin: 0; color: var(--accent-red);">
+                        {{ item.variant.variant_name }}
+                    </h2>
+                    {% if item.is_current %}
+                        <span class="badge bg-danger">Current</span>
+                    {% endif %}
+                    {% if item.variant.is_winner %}
+                        <span class="badge" style="background: #FFD700; color: var(--ink);">
+                            <i class="fas fa-trophy"></i> Winner
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-10">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-label">Impressions</div>
+                            <div class="metric-value">{{ item.variant.impressions|floatformat:0 }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-label">Clicks</div>
+                            <div class="metric-value">{{ item.variant.clicks|floatformat:0 }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-label">Views</div>
+                            <div class="metric-value">{{ item.variant.views|floatformat:0 }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-label">CTR</div>
+                            <div class="metric-value">{{ item.variant.ctr|floatformat:2 }}%</div>
+                        </div>
+                    </div>
+                    
+                    Variant Content Preview
+                    <div class="mt-3">
+                        {% if test.test_type == 'combined' %}
+                            <div class="p-2" style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid var(--accent-red);">
+                                <p class="mb-1"><small><strong><i class="fas fa-image"></i> Thumbnail:</strong> {{ item.variant.thumbnail_url|truncatechars:60 }}</small></p>
+                                <p class="mb-0"><small><strong><i class="fas fa-heading"></i> Title:</strong> {{ item.variant.title }}</small></p>
+                            </div>
+                        {% elif test.test_type == 'thumbnail' %}
+                            <p class="mb-1"><small><strong>Thumbnail:</strong> {{ item.variant.thumbnail_url|truncatechars:60 }}</small></p>
+                        {% elif test.test_type == 'title' %}
+                            <p class="mb-1"><small><strong>Title:</strong> {{ item.variant.title }}</small></p>
+                        {% elif test.test_type == 'description' %}
+                            <p class="mb-1"><small><strong>Description:</strong> {{ item.variant.description|truncatechars:100 }}</small></p>
+                        {% endif %}
+                    </div>
+                    
+                    Manual Winner Selection
+                    {% if test.status in 'active,completed' and not test.winner_variant %}
+                        <form method="post" action="{% url 'abtesting:test_management' test.id %}" class="mt-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="variant_id" value="{{ item.variant.id }}">
+                            <button type="submit" name="action" value="select_winner" class="btn btn-sm btn-outline-dark">
+                                <i class="fas fa-trophy"></i> Select as Winner
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    Test Configuration
+    <div class="detail-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px;">Test Configuration</h3>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Duration:</strong> {{ test.duration_hours }} hours</p>
+                <p><strong>Rotation Frequency:</strong> {{ test.rotation_frequency_hours }} hours</p>
+                <p><strong>Performance Threshold:</strong> {{ test.performance_threshold|floatformat:2 }} ({% widthratio test.performance_threshold 1 100 %}%)</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Auto-select Winner:</strong> {% if test.auto_select_winner %}Yes{% else %}No{% endif %}</p>
+                <p><strong>Created:</strong> {{ test.created_at|date:"M d, Y H:i" }}</p>
+                {% if test.start_date %}
+                    <p><strong>Started:</strong> {{ test.start_date|date:"M d, Y H:i" }}</p>
+                {% endif %}
+                {% if test.completed_at %}
+                    <p><strong>Completed:</strong> {{ test.completed_at|date:"M d, Y H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    Activity Log
+    <div class="detail-panel">
+        <h3 style="font-family: 'Oswald', sans-serif; margin-bottom: 20px;">Activity Log</h3>
+        
+        {% if recent_logs %}
+            {% for log in recent_logs %}
+            <div class="log-entry {% if log.action in 'started,winner_selected,winner_applied' %}important{% endif %}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong>{{ log.get_action_display|default:log.action|title }}</strong>
+                        {% if log.user %}
+                            by {{ log.user.username }}
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">{{ log.timestamp|date:"M d, Y H:i" }}</small>
+                </div>
+                {% if log.details %}
+                    <small class="text-muted">{{ log.details }}</small>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">No activity yet</p>
+        {% endif %}
+    </div>
+    
+    Back Button
+    <div class="mt-4">
+        <a href="{% url 'abtesting:test_list' %}" class="btn btn-outline-dark">
+            <i class="fas fa-arrow-left"></i> Back to Tests
+        </a>
+        {% if test.status == 'completed' %}
+            <a href="{% url 'abtesting:test_results' test.id %}" class="btn btn-dark">
+                <i class="fas fa-chart-bar"></i> View Full Results
+            </a>
+        {% endif %}
+    </div>
+</div>
+</div>
+-->
+
+<div
+  id="view-abtesting-detail"
+  class="view-section"
+  style="font-family: 'Inter', sans-serif"
+>
+  <div class="test-detail" style="max-width: 1150px; margin: auto">
+    <!-- Header -->
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 25px;
+      "
+    >
+      <div>
+        <h1
+          style="
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          "
+        >
+          <i class="fas fa-flask"></i> {{ test.video_title }}
+        </h1>
+        <p style="color: #777; margin: 0; font-size: 0.95rem">
+          {{ test.get_test_type_display }} Test · Video ID: {{ test.video_id }}
+        </p>
+      </div>
+      <span
+        style="padding:8px 20px; border-radius:20px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-family:'Oswald',sans-serif; font-size:1rem; background:{% if test.status == 'active' %}#34C759;color:#fff{% elif test.status == 'paused' %}#FF9500;color:#fff{% elif test.status == 'completed' %}#111;color:#fff{% else %}#e5e5e5;color:#111{% endif %};"
+      >
+        {{ test.get_status_display }}
+      </span>
+    </div>
+
+    <!-- Test Progress -->
+    {% if test.status == 'active' %}
+    <div
+      style="
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.06);
+      "
+    >
+      <h3
+        style="
+          font-family: 'Oswald', sans-serif;
+          margin: 0 0 15px;
+          font-size: 1.6rem;
+        "
+      >
+        Test Progress
+      </h3>
+
+      <!-- Progress Bar -->
+      <div
+        style="
+          height: 14px;
+          background: #eee;
+          border-radius: 7px;
+          overflow: hidden;
+        "
+      >
+        <div
+          style="height:100%; width:{{ status_data.progress_percentage }}%; background:#ff3b30; transition:0.3s;"
+        ></div>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          text-align: center;
+          margin-top: 20px;
+        "
+      >
+        <div style="flex: 1">
+          <div
+            style="
+              font-size: 0.8rem;
+              text-transform: uppercase;
+              color: #777;
+              font-weight: 600;
+            "
+          >
+            Progress
+          </div>
+          <div style="font-family: 'Oswald'; font-size: 2rem">
+            {{ status_data.progress_percentage|floatformat:1 }}%
+          </div>
+        </div>
+        <div style="flex: 1">
+          <div
+            style="
+              font-size: 0.8rem;
+              text-transform: uppercase;
+              color: #777;
+              font-weight: 600;
+            "
+          >
+            Time Remaining
+          </div>
+          <div style="font-family: 'Oswald'; font-size: 2rem">
+            {% if status_data.time_remaining_seconds %}{{
+            status_data.time_remaining_seconds|floatformat:0|divisibleby:3600
+            }}h{% else %}--{% endif %}
+          </div>
+        </div>
+        <div style="flex: 1">
+          <div
+            style="
+              font-size: 0.8rem;
+              text-transform: uppercase;
+              color: #777;
+              font-weight: 600;
+            "
+          >
+            Current Variant
+          </div>
+          <div style="font-family: 'Oswald'; font-size: 2rem">
+            {% if current_variant %}{{ current_variant.variant_name }}{% else
+            %}--{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Management Controls -->
+    <div
+      style="
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.06);
+      "
+    >
+      <h3 style="font-family: 'Oswald'; margin-bottom: 15px; font-size: 1.6rem">
+        Test Controls
+      </h3>
+
+      <form
+        method="post"
+        action="{% url 'abtesting:test_management' test.id %}"
+        style="display: inline-block"
+      >
+        {% csrf_token %} {% if test.status == 'draft' %}
+        <button
+          type="submit"
+          name="action"
+          value="start"
+          style="
+            padding: 10px 20px;
+            background: #000;
+            color: #fff;
+            border-radius: 8px;
+            border: none;
+          "
+        >
+          Start Test
+        </button>
+        {% elif test.status == 'active' %}
+        <button
+          type="submit"
+          name="action"
+          value="pause"
+          style="
+            padding: 10px 20px;
+            background: #ff9500;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+          "
+        >
+          Pause
+        </button>
+        <button
+          type="submit"
+          name="action"
+          value="stop"
+          onclick="return confirm('Stop early?')"
+          style="
+            padding: 10px 20px;
+            background: #ff3b30;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+          "
+        >
+          Stop
+        </button>
+        <button
+          type="submit"
+          name="action"
+          value="rotate_variant"
+          style="
+            padding: 10px 20px;
+            background: #fff;
+            border: 1px solid #111;
+            border-radius: 8px;
+          "
+        >
+          Rotate Variant
+        </button>
+        {% elif test.status == 'paused' %}
+        <button
+          type="submit"
+          name="action"
+          value="resume"
+          style="
+            padding: 10px 20px;
+            background: #34c759;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+          "
+        >
+          Resume
+        </button>
+        <button
+          type="submit"
+          name="action"
+          value="stop"
+          onclick="return confirm('Stop test?')"
+          style="
+            padding: 10px 20px;
+            background: #ff3b30;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+          "
+        >
+          Stop
+        </button>
+        {% endif %}
+      </form>
+
+      {% if winner_info and not winner_info.has_winner %}
+      <div
+        style="
+          margin-top: 15px;
+          padding: 10px 15px;
+          background: #eaf4ff;
+          border-left: 4px solid #007aff;
+          color: #333;
+          border-radius: 6px;
+        "
+      >
+        <i class="fas fa-info-circle"></i> {{ winner_info.message }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Variants -->
+    <div
+      style="
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.06);
+      "
+    >
+      <h3 style="font-family: 'Oswald'; margin-bottom: 20px; font-size: 1.6rem">
+        Variant Performance
+      </h3>
+
+      {% for item in variants_data %}
+      <div
+        style="border:2px solid {% if item.is_current %}#ff3b30{% elif item.variant.is_winner %}#FFD700{% else %}#eee{% endif %}; background:{% if item.is_current %}rgba(255,59,48,.05){% elif item.variant.is_winner %}rgba(255,215,0,.08){% else %}#fafafa{% endif %}; padding:20px; border-radius:12px; margin-bottom:15px;"
+      >
+        <div style="display: flex; gap: 20px; align-items: center">
+          <div style="min-width: 100px; text-align: center">
+            <div style="font-family: 'Oswald'; font-size: 3rem; color: #ff3b30">
+              {{ item.variant.variant_name }}
+            </div>
+            {% if item.is_current %}
+            <div
+              style="
+                background: #ff3b30;
+                color: #fff;
+                padding: 3px 8px;
+                border-radius: 5px;
+                font-size: 0.8rem;
+              "
+            >
+              Current
+            </div>
+            {% endif %} {% if item.variant.is_winner %}
+            <div
+              style="
+                background: #ffd700;
+                color: #111;
+                padding: 3px 8px;
+                margin-top: 5px;
+                border-radius: 5px;
+                font-size: 0.8rem;
+              "
+            >
+              Winner
+            </div>
+            {% endif %}
+          </div>
+
+          <div style="flex: 1">
+            <div style="display: flex; justify-content: space-between">
+              <div>
+                <div style="color: #777; font-size: 0.8rem">Impressions</div>
+                <div style="font-family: 'Oswald'; font-size: 1.8rem">
+                  {{ item.variant.impressions }}
+                </div>
+              </div>
+              <div>
+                <div style="color: #777; font-size: 0.8rem">Clicks</div>
+                <div style="font-family: 'Oswald'; font-size: 1.8rem">
+                  {{ item.variant.clicks }}
+                </div>
+              </div>
+              <div>
+                <div style="color: #777; font-size: 0.8rem">Views</div>
+                <div style="font-family: 'Oswald'; font-size: 1.8rem">
+                  {{ item.variant.views }}
+                </div>
+              </div>
+              <div>
+                <div style="color: #777; font-size: 0.8rem">CTR</div>
+                <div style="font-family: 'Oswald'; font-size: 1.8rem">
+                  {{ item.variant.ctr }}%
+                </div>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 10px;
+                padding: 10px;
+                background: #fff;
+                border-left: 3px solid #ff3b30;
+                border-radius: 5px;
+                font-size: 0.85rem;
+              "
+            >
+              <!-- {% if test.test_type == 'combined' %}
+                            <div><strong>Thumbnail:</strong> {{ item.variant.thumbnail_url }}</div>
+                            <div><strong>Title:</strong> {{ item.variant.title }}</div>
+                        {% elif test.test_type == 'thumbnail' %}
+                            <div><strong>Thumbnail:</strong> {{ item.variant.thumbnail_url }}</div>
+                        {% elif test.test_type == 'title' %}
+                            <div><strong>Title:</strong> {{ item.variant.title }}</div>
+                        {% elif test.test_type == 'description' %}
+                            <div><strong>Description:</strong> {{ item.variant.description }}</div>
+                        {% endif %} -->
+              {% if test.test_type == 'combined' %}
+              <div>
+                <strong>Thumbnail:</strong><br />
+                <img
+                  src="{{ item.variant.thumbnail_url }}"
+                  style="
+                    max-width: 180px;
+                    border-radius: 8px;
+                    margin: 6px 0;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <div>{{ item.variant.thumbnail_url }}</div>
+              </div>
+              <div><strong>Title:</strong> {{ item.variant.title }}</div>
+
+              {% elif test.test_type == 'thumbnail' %}
+              <div>
+                <strong>Thumbnail:</strong><br />
+                <img
+                  src="{{ item.variant.thumbnail_url }}"
+                  style="
+                    max-width: 180px;
+                    border-radius: 8px;
+                    margin: 6px 0;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <div>{{ item.variant.thumbnail_url }}</div>
+              </div>
+
+              {% elif test.test_type == 'title' %}
+              <div><strong>Title:</strong> {{ item.variant.title }}</div>
+
+              {% elif test.test_type == 'description' %}
+              <div>
+                <strong>Description:</strong> {{ item.variant.description }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Back Buttons -->
+    <div style="margin-top: 25px; display: flex; gap: 10px">
+      <a
+        href="{% url 'abtesting:test_list' %}"
+        style="
+          padding: 10px 18px;
+          border: 1px solid #111;
+          border-radius: 8px;
+          color: #111;
+          text-decoration: none;
+        "
+        >← Back to Tests</a
+      >
+      {% if test.status == 'completed' %}
+      <a
+        href="{% url 'abtesting:test_results' test.id %}"
+        style="
+          padding: 10px 18px;
+          background: #111;
+          color: #fff;
+          border-radius: 8px;
+          text-decoration: none;
+        "
+        >View Full Results</a
+      >
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block extra_js %}
+<script>
+  // Auto-refresh page every 30 seconds if test is active
+  {% if test.status == 'active' %}
+  setTimeout(function() {
+      location.reload();
+  }, 30000);
+  {% endif %}
+</script>
+{% endblock %}

@@ -11,7 +11,8 @@ from accounts.models import User
 from integrations.youtube import YouTubeService
 from integrations.google_drive import GoogleDriveService
 from .models import ApprovalRequest
-from .forms import ApprovalRequestForm, RejectRequestForm, CreatorDirectUploadForm
+from .forms import ApprovalRequestForm, RejectRequestForm, CreatorDirectUploadForm, ThumbnailUploadForm
+from .thumbnail_service import ThumbnailService
 import io
 
 
@@ -376,11 +377,15 @@ def youtube_upload(request, pk):
         privacy_status = request.POST.get('privacy_status', 'private')
         tags = request.POST.get('tags', '').strip()
         
+        # Process thumbnail form
+        thumbnail_form = ThumbnailUploadForm(request.POST, request.FILES)
+        
         # Validate required fields
         if not title:
             messages.error(request, 'Video title is required.')
             return render(request, 'approvals/youtube_upload.html', {
                 'request_obj': approval_request,
+                'thumbnail_form': thumbnail_form,
                 'title': f'Upload to YouTube - {approval_request.file.name}'
             })
         
@@ -388,6 +393,7 @@ def youtube_upload(request, pk):
             messages.error(request, 'Video description is required.')
             return render(request, 'approvals/youtube_upload.html', {
                 'request_obj': approval_request,
+                'thumbnail_form': thumbnail_form,
                 'title': f'Upload to YouTube - {approval_request.file.name}'
             })
         
@@ -397,6 +403,7 @@ def youtube_upload(request, pk):
             messages.error(request, 'Invalid privacy status selected.')
             return render(request, 'approvals/youtube_upload.html', {
                 'request_obj': approval_request,
+                'thumbnail_form': thumbnail_form,
                 'title': f'Upload to YouTube - {approval_request.file.name}'
             })
         
@@ -441,9 +448,48 @@ def youtube_upload(request, pk):
             )
             
             if result:
+                video_id = result['id']
+                
+                # Handle thumbnail upload if provided
+                if thumbnail_form.is_valid():
+                    thumbnail_source = thumbnail_form.cleaned_data.get('thumbnail_source')
+                    
+                    if thumbnail_source != 'none':
+                        thumbnail_service = ThumbnailService(user=creator)
+                        thumbnail_buffer = None
+                        
+                        if thumbnail_source == 'upload':
+                            thumbnail_file = thumbnail_form.cleaned_data.get('thumbnail_file')
+                            if thumbnail_file:
+                                thumbnail_buffer, thumb_error = thumbnail_service.upload_from_computer(thumbnail_file)
+                                if thumb_error:
+                                    messages.warning(request, f'Video uploaded but thumbnail failed: {thumb_error}')
+                        
+                        elif thumbnail_source == 'drive':
+                            drive_file_id = thumbnail_form.cleaned_data.get('drive_file_id')
+                            if drive_file_id:
+                                thumbnail_buffer, thumb_error = thumbnail_service.get_from_drive(drive_file_id)
+                                if thumb_error:
+                                    messages.warning(request, f'Video uploaded but thumbnail failed: {thumb_error}')
+                        
+                        elif thumbnail_source == 'video_frame':
+                            video_frame_time = thumbnail_form.cleaned_data.get('video_frame_time')
+                            if video_frame_time is not None:
+                                # Reset video buffer for frame extraction
+                                file_buffer.seek(0)
+                                thumbnail_buffer, thumb_error = thumbnail_service.extract_frame(file_buffer, video_frame_time)
+                                if thumb_error:
+                                    messages.warning(request, f'Video uploaded but thumbnail failed: {thumb_error}')
+                        
+                        # Upload thumbnail to YouTube if we have one
+                        if thumbnail_buffer:
+                            success, thumb_error = thumbnail_service.set_youtube_thumbnail(video_id, thumbnail_buffer)
+                            if not success:
+                                messages.warning(request, f'Video uploaded but thumbnail upload failed: {thumb_error}')
+                
                 # Update approval request status
                 approval_request.status = 'uploaded'
-                approval_request.youtube_video_id = result['id']
+                approval_request.youtube_video_id = video_id
                 approval_request.save()
                 
                 # Notify editor
@@ -470,9 +516,12 @@ def youtube_upload(request, pk):
                 f'An error occurred while uploading the video: {str(e)}. '
                 'Please try again or contact support if the issue persists.'
             )
+    else:
+        thumbnail_form = ThumbnailUploadForm()
     
     return render(request, 'approvals/youtube_upload.html', {
         'request_obj': approval_request,
+        'thumbnail_form': thumbnail_form,
         'title': f'Upload to YouTube - {approval_request.file.name}'
     })
 
@@ -535,6 +584,8 @@ def creator_direct_upload(request):
     
     if request.method == 'POST':
         form = CreatorDirectUploadForm(creator, request.POST, request.FILES)
+        thumbnail_form = ThumbnailUploadForm(request.POST, request.FILES)
+        
         if form.is_valid():
             source = form.cleaned_data['source']
             title = form.cleaned_data['title']
@@ -646,6 +697,45 @@ def creator_direct_upload(request):
                 )
                 
                 if result:
+                    video_id = result['id']
+                    
+                    # Handle thumbnail upload if provided
+                    if thumbnail_form.is_valid():
+                        thumbnail_source = thumbnail_form.cleaned_data.get('thumbnail_source')
+                        
+                        if thumbnail_source != 'none':
+                            thumbnail_service = ThumbnailService(user=creator)
+                            thumbnail_buffer = None
+                            
+                            if thumbnail_source == 'upload':
+                                thumbnail_file = thumbnail_form.cleaned_data.get('thumbnail_file')
+                                if thumbnail_file:
+                                    thumbnail_buffer, thumb_error = thumbnail_service.upload_from_computer(thumbnail_file)
+                                    if thumb_error:
+                                        messages.warning(request, f'Video uploaded but thumbnail failed: {thumb_error}')
+                            
+                            elif thumbnail_source == 'drive':
+                                drive_file_id = thumbnail_form.cleaned_data.get('drive_file_id')
+                                if drive_file_id:
+                                    thumbnail_buffer, thumb_error = thumbnail_service.get_from_drive(drive_file_id)
+                                    if thumb_error:
+                                        messages.warning(request, f'Video uploaded but thumbnail failed: {thumb_error}')
+                            
+                            elif thumbnail_source == 'video_frame':
+                                video_frame_time = thumbnail_form.cleaned_data.get('video_frame_time')
+                                if video_frame_time is not None:
+                                    # Reset video buffer for frame extraction
+                                    file_buffer.seek(0)
+                                    thumbnail_buffer, thumb_error = thumbnail_service.extract_frame(file_buffer, video_frame_time)
+                                    if thumb_error:
+                                        messages.warning(request, f'Video uploaded but thumbnail failed: {thumb_error}')
+                            
+                            # Upload thumbnail to YouTube if we have one
+                            if thumbnail_buffer:
+                                success, thumb_error = thumbnail_service.set_youtube_thumbnail(video_id, thumbnail_buffer)
+                                if not success:
+                                    messages.warning(request, f'Video uploaded but thumbnail upload failed: {thumb_error}')
+                    
                     messages.success(
                         request,
                         f'Video "{title}" has been successfully uploaded to YouTube! '
@@ -669,6 +759,7 @@ def creator_direct_upload(request):
                 )
     else:
         form = CreatorDirectUploadForm(creator)
+        thumbnail_form = ThumbnailUploadForm()
     
     # Check if Drive is connected
     drive_service = GoogleDriveService(user=creator)
@@ -676,6 +767,7 @@ def creator_direct_upload(request):
     
     return render(request, 'approvals/creator_direct_upload.html', {
         'form': form,
+        'thumbnail_form': thumbnail_form,
         'title': 'Direct Upload to YouTube',
         'youtube_connected': youtube_service.is_authenticated(),
         'drive_connected': drive_connected

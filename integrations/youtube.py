@@ -24,7 +24,9 @@ class YouTubeService:
     # YouTube API scopes
     SCOPES = [
         'https://www.googleapis.com/auth/youtube',
-        'https://www.googleapis.com/auth/youtube.upload'
+        'https://www.googleapis.com/auth/youtube.upload',
+        'https://www.googleapis.com/auth/youtube.readonly',  # For Analytics API
+        'https://www.googleapis.com/auth/youtube.force-ssl'  # For metadata updates (A/B testing)
     ]
     
     def __init__(self, user=None):
@@ -138,6 +140,7 @@ class YouTubeService:
                     'access_token': encrypted_access_token,
                     'refresh_token': encrypted_refresh_token,
                     'expires_at': expires_at,
+                    'scopes': ' '.join(granted_scopes),  # Store granted scopes
                 }
             )
             
@@ -406,3 +409,488 @@ class YouTubeService:
                 print(f"Error refreshing YouTube token: {e}")
                 return False
         return False
+
+
+class YouTubeAnalyticsService:
+    """Service class for YouTube Analytics API operations."""
+    
+    # Retry configuration
+    MAX_RETRIES = 3
+    INITIAL_BACKOFF = 1  # seconds
+    MAX_BACKOFF = 16  # seconds
+    
+    def __init__(self, user=None):
+        """Initialize the analytics service with optional user context."""
+        self.user = user
+        self._youtube_service = None
+        self._analytics_service = None
+        self._credentials = None
+    
+    def _execute_with_retry(self, request, operation_name="API call"):
+        """
+        Execute an API request with exponential backoff retry logic.
+        
+        Args:
+            request: The API request object to execute
+            operation_name: Description of the operation for logging
+            
+        Returns:
+            Tuple of (response, error_message)
+        """
+        import time
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        backoff = self.INITIAL_BACKOFF
+        
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                response = request.execute()
+                return response, None
+                
+            except HttpError as e:
+                error_code = e.resp.status
+                
+                # Handle rate limiting (429) and server errors (5xx)
+                if error_code == 429 or (500 <= error_code < 600):
+                    if attempt < self.MAX_RETRIES - 1:
+                        wait_time = min(backoff, self.MAX_BACKOFF)
+                        logger.warning(
+                            f"{operation_name} failed with error {error_code}. "
+                            f"Retrying in {wait_time} seconds... (Attempt {attempt + 1}/{self.MAX_RETRIES})"
+                        )
+                        time.sleep(wait_time)
+                        backoff *= 2  # Exponential backoff
+                        continue
+                    else:
+                        error_msg = f"Rate limit exceeded or server error after {self.MAX_RETRIES} attempts"
+                        logger.error(f"{operation_name} failed: {error_msg}")
+                        return None, error_msg
+                
+                # Handle authentication errors (401)
+                elif error_code == 401:
+                    # Try to refresh token automatically
+                    logger.info(f"Authentication error during {operation_name}. Attempting token refresh...")
+                    credentials, cred_error = self.get_credentials()
+                    if credentials:
+                        # Token was refreshed, retry once
+                        if attempt < self.MAX_RETRIES - 1:
+                            logger.info("Token refreshed successfully. Retrying request...")
+                            # Rebuild services with new credentials
+                            self._youtube_service = None
+                            self._analytics_service = None
+                            continue
+                    
+                    error_msg = "Authentication failed. Please reconnect your YouTube account."
+                    logger.error(f"{operation_name} failed: {error_msg}")
+                    return None, error_msg
+                
+                # Handle quota exceeded (403)
+                elif error_code == 403:
+                    error_msg = "YouTube API quota exceeded. Please try again later."
+                    logger.error(f"{operation_name} failed: {error_msg}")
+                    return None, error_msg
+                
+                # Other HTTP errors
+                else:
+                    error_msg = f"YouTube API error: {e.reason if hasattr(e, 'reason') else str(e)}"
+                    logger.error(f"{operation_name} failed: {error_msg}")
+                    return None, error_msg
+                    
+            except Exception as e:
+                error_msg = f"Unexpected error during {operation_name}: {str(e)}"
+                logger.error(error_msg)
+                return None, error_msg
+        
+        # Should not reach here, but just in case
+        return None, f"{operation_name} failed after {self.MAX_RETRIES} attempts"
+    
+    def get_credentials(self):
+        """
+        Get valid credentials for the user.
+        Returns tuple (credentials, error_message)
+        """
+        if not self.user:
+            return None, "No user specified"
+        
+        try:
+            integration = Integration.objects.get(
+                user=self.user,
+                service_type='youtube'
+            )
+            
+            # Decrypt tokens
+            youtube_service = YouTubeService(user=self.user)
+            access_token = youtube_service.decrypt_token(integration.access_token)
+            refresh_token = youtube_service.decrypt_token(integration.refresh_token) if integration.refresh_token else None
+            
+            # Create credentials object
+            credentials = Credentials(
+                token=access_token,
+                refresh_token=refresh_token,
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=settings.YOUTUBE_CLIENT_ID,
+                client_secret=settings.YOUTUBE_CLIENT_SECRET,
+                scopes=YouTubeService.SCOPES
+            )
+            
+            # Check if token needs refresh
+            if integration.is_expired():
+                try:
+                    credentials.refresh(Request())
+                    
+                    # Update stored tokens
+                    integration.access_token = youtube_service.encrypt_token(credentials.token)
+                    integration.expires_at = timezone.now() + timedelta(seconds=3600)
+                    integration.save()
+                except Exception as refresh_error:
+                    print(f"Token refresh failed: {refresh_error}")
+                    return None, "Your YouTube session has expired. Please reconnect your account."
+            
+            return credentials, None
+            
+        except Integration.DoesNotExist:
+            return None, "YouTube is not connected"
+        except Exception as e:
+            print(f"Error getting YouTube credentials: {e}")
+            return None, f"Error accessing YouTube credentials: {str(e)}"
+    
+    def get_youtube_service(self):
+        """
+        Get authenticated YouTube Data API service.
+        Returns tuple (service, error_message)
+        """
+        if self._youtube_service:
+            return self._youtube_service, None
+        
+        credentials, error = self.get_credentials()
+        if not credentials:
+            return None, error or "Could not get YouTube credentials"
+        
+        try:
+            self._youtube_service = build('youtube', 'v3', credentials=credentials)
+            return self._youtube_service, None
+        except Exception as e:
+            print(f"Error building YouTube service: {e}")
+            return None, f"Could not connect to YouTube: {str(e)}"
+    
+    def get_analytics_service(self):
+        """
+        Get authenticated YouTube Analytics API service.
+        Returns tuple (service, error_message)
+        """
+        if self._analytics_service:
+            return self._analytics_service, None
+        
+        credentials, error = self.get_credentials()
+        if not credentials:
+            return None, error or "Could not get YouTube credentials"
+        
+        try:
+            self._analytics_service = build('youtubeAnalytics', 'v2', credentials=credentials)
+            return self._analytics_service, None
+        except Exception as e:
+            print(f"Error building YouTube Analytics service: {e}")
+            return None, f"Could not connect to YouTube Analytics: {str(e)}"
+    
+    def get_channel_id(self):
+        """
+        Get the channel ID for the authenticated user.
+        Returns tuple (channel_id, error_message)
+        """
+        youtube_service, error = self.get_youtube_service()
+        if not youtube_service:
+            return None, error
+        
+        try:
+            request = youtube_service.channels().list(
+                part='id',
+                mine=True
+            )
+            response = request.execute()
+            
+            if response.get('items'):
+                return response['items'][0]['id'], None
+            
+            return None, "No channel found for this account"
+            
+        except HttpError as e:
+            error_msg = f"YouTube API error: {e.reason if hasattr(e, 'reason') else str(e)}"
+            print(f"YouTube API error getting channel ID: {e}")
+            return None, error_msg
+        except Exception as e:
+            error_msg = f"Error getting channel ID: {str(e)}"
+            print(f"Error getting channel ID: {e}")
+            return None, error_msg
+    
+    def get_video_metrics(self, video_id, start_date, end_date):
+        """
+        Fetch video analytics metrics for a specific video.
+        
+        Args:
+            video_id: YouTube video ID
+            start_date: Start date (YYYY-MM-DD format or datetime object)
+            end_date: End date (YYYY-MM-DD format or datetime object)
+            
+        Returns:
+            Tuple of (metrics dict, error_message)
+        """
+        analytics_service, error = self.get_analytics_service()
+        if not analytics_service:
+            return None, error
+        
+        # Convert datetime objects to string format if needed
+        if hasattr(start_date, 'strftime'):
+            start_date = start_date.strftime('%Y-%m-%d')
+        if hasattr(end_date, 'strftime'):
+            end_date = end_date.strftime('%Y-%m-%d')
+        
+        # Fetch video metrics with retry logic
+        request = analytics_service.reports().query(
+            ids='channel==MINE',
+            startDate=start_date,
+            endDate=end_date,
+            metrics='views,likes,comments,shares,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost',
+            dimensions='day',
+            filters=f'video=={video_id}',
+            sort='day'
+        )
+        
+        response, error = self._execute_with_retry(request, f"get_video_metrics for {video_id}")
+        if error:
+            return None, error
+        
+        # Parse response
+        metrics = {
+            'video_id': video_id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'rows': []
+        }
+        
+        if 'rows' in response:
+            column_headers = [header['name'] for header in response.get('columnHeaders', [])]
+            for row in response['rows']:
+                row_data = dict(zip(column_headers, row))
+                metrics['rows'].append(row_data)
+        
+        return metrics, None
+    
+    def get_channel_metrics(self, start_date, end_date):
+        """
+        Fetch channel-level analytics metrics.
+        
+        Args:
+            start_date: Start date (YYYY-MM-DD format or datetime object)
+            end_date: End date (YYYY-MM-DD format or datetime object)
+            
+        Returns:
+            Tuple of (metrics dict, error_message)
+        """
+        analytics_service, error = self.get_analytics_service()
+        if not analytics_service:
+            return None, error
+        
+        # Convert datetime objects to string format if needed
+        if hasattr(start_date, 'strftime'):
+            start_date = start_date.strftime('%Y-%m-%d')
+        if hasattr(end_date, 'strftime'):
+            end_date = end_date.strftime('%Y-%m-%d')
+        
+        # Fetch channel metrics with retry logic
+        request = analytics_service.reports().query(
+            ids='channel==MINE',
+            startDate=start_date,
+            endDate=end_date,
+            metrics='views,likes,comments,shares,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost',
+            dimensions='day',
+            sort='day'
+        )
+        
+        response, error = self._execute_with_retry(request, "get_channel_metrics")
+        if error:
+            return None, error
+        
+        # Parse response
+        metrics = {
+            'start_date': start_date,
+            'end_date': end_date,
+            'rows': []
+        }
+        
+        if 'rows' in response:
+            column_headers = [header['name'] for header in response.get('columnHeaders', [])]
+            for row in response['rows']:
+                row_data = dict(zip(column_headers, row))
+                metrics['rows'].append(row_data)
+        
+        return metrics, None
+    
+    def get_traffic_sources(self, video_id, start_date, end_date):
+        """
+        Fetch traffic source data for a video.
+        
+        Args:
+            video_id: YouTube video ID
+            start_date: Start date (YYYY-MM-DD format or datetime object)
+            end_date: End date (YYYY-MM-DD format or datetime object)
+            
+        Returns:
+            Tuple of (traffic sources dict, error_message)
+        """
+        analytics_service, error = self.get_analytics_service()
+        if not analytics_service:
+            return None, error
+        
+        # Convert datetime objects to string format if needed
+        if hasattr(start_date, 'strftime'):
+            start_date = start_date.strftime('%Y-%m-%d')
+        if hasattr(end_date, 'strftime'):
+            end_date = end_date.strftime('%Y-%m-%d')
+        
+        # Fetch traffic source data with retry logic
+        request = analytics_service.reports().query(
+            ids='channel==MINE',
+            startDate=start_date,
+            endDate=end_date,
+            metrics='views,estimatedMinutesWatched',
+            dimensions='insightTrafficSourceType',
+            filters=f'video=={video_id}',
+            sort='-views'
+        )
+        
+        response, error = self._execute_with_retry(request, f"get_traffic_sources for {video_id}")
+        if error:
+            return None, error
+        
+        # Parse response
+        traffic_sources = {
+            'video_id': video_id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'sources': []
+        }
+        
+        if 'rows' in response:
+            column_headers = [header['name'] for header in response.get('columnHeaders', [])]
+            for row in response['rows']:
+                row_data = dict(zip(column_headers, row))
+                traffic_sources['sources'].append(row_data)
+        
+        return traffic_sources, None
+    
+    def get_demographics(self, video_id, start_date, end_date):
+        """
+        Fetch demographic data (age and gender) for a video.
+        
+        Args:
+            video_id: YouTube video ID
+            start_date: Start date (YYYY-MM-DD format or datetime object)
+            end_date: End date (YYYY-MM-DD format or datetime object)
+            
+        Returns:
+            Tuple of (demographics dict, error_message)
+        """
+        analytics_service, error = self.get_analytics_service()
+        if not analytics_service:
+            return None, error
+        
+        # Convert datetime objects to string format if needed
+        if hasattr(start_date, 'strftime'):
+            start_date = start_date.strftime('%Y-%m-%d')
+        if hasattr(end_date, 'strftime'):
+            end_date = end_date.strftime('%Y-%m-%d')
+        
+        demographics = {
+            'video_id': video_id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'age_gender': [],
+            'geography': []
+        }
+        
+        # Fetch age and gender demographics with retry logic
+        request = analytics_service.reports().query(
+            ids='channel==MINE',
+            startDate=start_date,
+            endDate=end_date,
+            metrics='viewerPercentage',
+            dimensions='ageGroup,gender',
+            filters=f'video=={video_id}',
+            sort='-viewerPercentage'
+        )
+        
+        response, error = self._execute_with_retry(request, f"get_demographics (age/gender) for {video_id}")
+        if not error and response and 'rows' in response:
+            column_headers = [header['name'] for header in response.get('columnHeaders', [])]
+            for row in response['rows']:
+                row_data = dict(zip(column_headers, row))
+                demographics['age_gender'].append(row_data)
+        
+        # Fetch geographic demographics with retry logic
+        request = analytics_service.reports().query(
+            ids='channel==MINE',
+            startDate=start_date,
+            endDate=end_date,
+            metrics='views,estimatedMinutesWatched',
+            dimensions='country',
+            filters=f'video=={video_id}',
+            sort='-views',
+            maxResults=10
+        )
+        
+        response, error = self._execute_with_retry(request, f"get_demographics (geography) for {video_id}")
+        if not error and response and 'rows' in response:
+            column_headers = [header['name'] for header in response.get('columnHeaders', [])]
+            for row in response['rows']:
+                row_data = dict(zip(column_headers, row))
+                demographics['geography'].append(row_data)
+        
+        return demographics, None
+    
+    def get_retention_data(self, video_id):
+        """
+        Fetch audience retention data for a video.
+        
+        Note: Audience retention data is available through the YouTube Data API,
+        not the Analytics API. This method uses the videos.getReport endpoint.
+        
+        Args:
+            video_id: YouTube video ID
+            
+        Returns:
+            Tuple of (retention data dict, error_message)
+        """
+        youtube_service, error = self.get_youtube_service()
+        if not youtube_service:
+            return None, error
+        
+        # Note: Detailed retention curves require YouTube Studio API access
+        # which is not available in the standard YouTube Data API v3.
+        # We'll return basic video statistics instead and note this limitation.
+        
+        request = youtube_service.videos().list(
+            part='statistics,contentDetails',
+            id=video_id
+        )
+        
+        response, error = self._execute_with_retry(request, f"get_retention_data for {video_id}")
+        if error:
+            return None, error
+        
+        if not response.get('items'):
+            return None, f"Video {video_id} not found"
+        
+        video = response['items'][0]
+        
+        # Calculate approximate retention metrics from available data
+        retention_data = {
+            'video_id': video_id,
+            'view_count': int(video['statistics'].get('viewCount', 0)),
+            'like_count': int(video['statistics'].get('likeCount', 0)),
+            'comment_count': int(video['statistics'].get('commentCount', 0)),
+            'duration': video['contentDetails'].get('duration', 'PT0S'),
+            'note': 'Detailed retention curve requires YouTube Studio API access. Using basic statistics.'
+        }
+        
+        return retention_data, None

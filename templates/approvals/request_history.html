@@ -1,136 +1,449 @@
-{% extends 'base.html' %}
-
-{% block title %}{{ title }} - Creator Backoffice{% endblock %}
-
+{% extends 'base_sidebar.html' %} 
+{% block title %}
+{{ title }} - CreatorFlow
+{% endblock %} 
 {% block content %}
-<div class="row">
+<div id="view-request-history" class="view-section">
+  <div class="row">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>{{ title }}</h2>
-            <div>
-                <a href="{% url 'approvals:pending_approvals' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-clock-history"></i> Pending Approvals
-                </a>
-                <a href="{% url 'approvals:request_list' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-list"></i> All Requests
-                </a>
-            </div>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="margin-bottom: 20px">{{ title }}</h2>
+        <div style="margin-bottom: 20px">
+          <a
+            href="{% url 'approvals:pending_approvals' %}"
+            class="btn btn-outline-primary"
+          >
+            <i class="bi bi-clock-history"></i> Pending Approvals
+          </a>
+          <a
+            href="{% url 'approvals:request_list' %}"
+            class="btn btn-outline-secondary"
+          >
+            <i class="bi bi-list"></i> All Requests
+          </a>
         </div>
-        
-        <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center border-warning">
-                    <div class="card-body">
-                        <h3 class="text-warning">{{ pending_requests.count }}</h3>
-                        <p class="mb-0">Pending</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center border-success">
-                    <div class="card-body">
-                        <h3 class="text-success">{{ approved_requests.count }}</h3>
-                        <p class="mb-0">Approved</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center border-danger">
-                    <div class="card-body">
-                        <h3 class="text-danger">{{ rejected_requests.count }}</h3>
-                        <p class="mb-0">Rejected</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center border-info">
-                    <div class="card-body">
-                        <h3 class="text-info">{{ uploaded_requests.count }}</h3>
-                        <p class="mb-0">Uploaded</p>
-                    </div>
-                </div>
-            </div>
+      </div>
+
+      <!-- Summary Stats Cards Grid -->
+      <div
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: var(--space-5);
+          margin-bottom: var(--space-6);
+        "
+      >
+        <!-- Pending Card -->
+        <div class="card card-stat card-accent-orange">
+          <div class="stat-value" style="color: var(--accent-orange)">
+            {{ pending_requests.count }}
+          </div>
+          <div class="stat-label">Pending</div>
         </div>
-        
-        {% if all_requests %}
-            <!-- Tabs for filtering by status -->
-            <ul class="nav nav-tabs mb-3" id="historyTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                        All ({{ all_requests.count }})
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
-                        Pending ({{ pending_requests.count }})
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab">
-                        Approved ({{ approved_requests.count }})
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected" type="button" role="tab">
-                        Rejected ({{ rejected_requests.count }})
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="uploaded-tab" data-bs-toggle="tab" data-bs-target="#uploaded" type="button" role="tab">
-                        Uploaded ({{ uploaded_requests.count }})
-                    </button>
-                </li>
-            </ul>
-            
-            <div class="tab-content" id="historyTabContent">
-                <!-- All Requests Tab -->
-                <div class="tab-pane fade show active" id="all" role="tabpanel">
-                    {% include 'approvals/partials/request_table.html' with requests=all_requests %}
-                </div>
-                
-                <!-- Pending Tab -->
-                <div class="tab-pane fade" id="pending" role="tabpanel">
-                    {% if pending_requests %}
-                        {% include 'approvals/partials/request_table.html' with requests=pending_requests %}
-                    {% else %}
-                        <div class="alert alert-info">No pending requests.</div>
-                    {% endif %}
-                </div>
-                
-                <!-- Approved Tab -->
-                <div class="tab-pane fade" id="approved" role="tabpanel">
-                    {% if approved_requests %}
-                        {% include 'approvals/partials/request_table.html' with requests=approved_requests %}
-                    {% else %}
-                        <div class="alert alert-info">No approved requests.</div>
-                    {% endif %}
-                </div>
-                
-                <!-- Rejected Tab -->
-                <div class="tab-pane fade" id="rejected" role="tabpanel">
-                    {% if rejected_requests %}
-                        {% include 'approvals/partials/request_table.html' with requests=rejected_requests %}
-                    {% else %}
-                        <div class="alert alert-info">No rejected requests.</div>
-                    {% endif %}
-                </div>
-                
-                <!-- Uploaded Tab -->
-                <div class="tab-pane fade" id="uploaded" role="tabpanel">
-                    {% if uploaded_requests %}
-                        {% include 'approvals/partials/request_table.html' with requests=uploaded_requests %}
-                    {% else %}
-                        <div class="alert alert-info">No uploaded requests.</div>
-                    {% endif %}
-                </div>
+
+        <!-- Approved Card -->
+        <div class="card card-stat card-accent-green">
+          <div class="stat-value" style="color: var(--accent-green)">
+            {{ approved_requests.count }}
+          </div>
+          <div class="stat-label">Approved</div>
+        </div>
+
+        <!-- Rejected Card -->
+        <div class="card card-stat card-accent-red">
+          <div class="stat-value" style="color: var(--accent-red)">
+            {{ rejected_requests.count }}
+          </div>
+          <div class="stat-label">Rejected</div>
+        </div>
+
+        <!-- Uploaded Card -->
+        <div class="card card-stat card-accent-blue">
+          <div class="stat-value" style="color: var(--accent-blue)">
+            {{ uploaded_requests.count }}
+          </div>
+          <div class="stat-label">Uploaded</div>
+        </div>
+      </div>
+
+      {% if all_requests %}
+      <!-- Tabs Navigation -->
+      <div class="card">
+        <div class="card-body" style="padding: 0">
+          <!-- Custom Tab Navigation -->
+          <div
+            class="tab-nav"
+            style="
+              display: flex;
+              gap: 0;
+              border-bottom: 2px solid var(--border-light);
+              overflow-x: auto;
+            "
+          >
+            <button
+              class="tab-link active"
+              data-tab="all"
+              style="
+                flex: 1;
+                min-width: max-content;
+                padding: var(--space-4) var(--space-5);
+                border: none;
+                background: var(--paper);
+                color: var(--ink);
+                font-family: var(--font-display);
+                font-weight: var(--font-bold);
+                font-size: var(--text-sm);
+                text-transform: uppercase;
+                cursor: pointer;
+                border-bottom: 3px solid var(--accent-red);
+                transition: all var(--transition-base);
+                position: relative;
+              "
+            >
+              All
+              <span
+                style="
+                  display: inline-block;
+                  margin-left: var(--space-2);
+                  padding: var(--space-1) var(--space-2);
+                  background: var(--gray-200);
+                  border-radius: var(--radius-full);
+                  font-size: var(--text-xs);
+                "
+                >{{ all_requests.count }}</span
+              >
+            </button>
+            <button
+              class="tab-link"
+              data-tab="pending"
+              style="
+                flex: 1;
+                min-width: max-content;
+                padding: var(--space-4) var(--space-5);
+                border: none;
+                background: var(--paper);
+                color: var(--gray-600);
+                font-family: var(--font-display);
+                font-weight: var(--font-bold);
+                font-size: var(--text-sm);
+                text-transform: uppercase;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all var(--transition-base);
+              "
+            >
+              Pending
+              <span
+                style="
+                  display: inline-block;
+                  margin-left: var(--space-2);
+                  padding: var(--space-1) var(--space-2);
+                  background: var(--gray-200);
+                  border-radius: var(--radius-full);
+                  font-size: var(--text-xs);
+                "
+                >{{ pending_requests.count }}</span
+              >
+            </button>
+            <button
+              class="tab-link"
+              data-tab="approved"
+              style="
+                flex: 1;
+                min-width: max-content;
+                padding: var(--space-4) var(--space-5);
+                border: none;
+                background: var(--paper);
+                color: var(--gray-600);
+                font-family: var(--font-display);
+                font-weight: var(--font-bold);
+                font-size: var(--text-sm);
+                text-transform: uppercase;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all var(--transition-base);
+              "
+            >
+              Approved
+              <span
+                style="
+                  display: inline-block;
+                  margin-left: var(--space-2);
+                  padding: var(--space-1) var(--space-2);
+                  background: var(--gray-200);
+                  border-radius: var(--radius-full);
+                  font-size: var(--text-xs);
+                "
+                >{{ approved_requests.count }}</span
+              >
+            </button>
+            <button
+              class="tab-link"
+              data-tab="rejected"
+              style="
+                flex: 1;
+                min-width: max-content;
+                padding: var(--space-4) var(--space-5);
+                border: none;
+                background: var(--paper);
+                color: var(--gray-600);
+                font-family: var(--font-display);
+                font-weight: var(--font-bold);
+                font-size: var(--text-sm);
+                text-transform: uppercase;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all var(--transition-base);
+              "
+            >
+              Rejected
+              <span
+                style="
+                  display: inline-block;
+                  margin-left: var(--space-2);
+                  padding: var(--space-1) var(--space-2);
+                  background: var(--gray-200);
+                  border-radius: var(--radius-full);
+                  font-size: var(--text-xs);
+                "
+                >{{ rejected_requests.count }}</span
+              >
+            </button>
+            <button
+              class="tab-link"
+              data-tab="uploaded"
+              style="
+                flex: 1;
+                min-width: max-content;
+                padding: var(--space-4) var(--space-5);
+                border: none;
+                background: var(--paper);
+                color: var(--gray-600);
+                font-family: var(--font-display);
+                font-weight: var(--font-bold);
+                font-size: var(--text-sm);
+                text-transform: uppercase;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all var(--transition-base);
+              "
+            >
+              Uploaded
+              <span
+                style="
+                  display: inline-block;
+                  margin-left: var(--space-2);
+                  padding: var(--space-1) var(--space-2);
+                  background: var(--gray-200);
+                  border-radius: var(--radius-full);
+                  font-size: var(--text-xs);
+                "
+                >{{ uploaded_requests.count }}</span
+              >
+            </button>
+          </div>
+
+          <!-- Tab Content Panels -->
+          <div>
+            <!-- All Requests Tab -->
+            <div class="tab-panel active" data-panel="all">
+              {% include 'approvals/partials/request_table.html' with
+              requests=all_requests %}
             </div>
-        {% else %}
-            <div class="alert alert-info">
-                <h5>No approval requests found</h5>
-                <p>There are no approval requests from your team members yet.</p>
+
+            <!-- Pending Tab -->
+            <div class="tab-panel" data-panel="pending" style="display: none">
+              {% if pending_requests %} {% include
+              'approvals/partials/request_table.html' with
+              requests=pending_requests %} {% else %}
+              <div
+                style="
+                  padding: var(--space-4);
+                  background: rgba(59, 130, 246, 0.1);
+                  border: 2px solid var(--accent-blue);
+                  border-left: 4px solid var(--accent-blue);
+                  border-radius: var(--radius-md);
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <i
+                    class="fas fa-info-circle"
+                    style="color: var(--accent-blue); font-size: var(--text-xl)"
+                  ></i>
+                  <span
+                    style="
+                      color: var(--ink);
+                      font-weight: var(--font-medium);
+                      font-size: var(--text-sm);
+                    "
+                    >No pending requests.</span
+                  >
+                </div>
+              </div>
+              {% endif %}
             </div>
-        {% endif %}
+
+            <!-- Approved Tab -->
+            <div class="tab-panel" data-panel="approved" style="display: none">
+              {% if approved_requests %} {% include
+              'approvals/partials/request_table.html' with
+              requests=approved_requests %} {% else %}
+              <div
+                style="
+                  padding: var(--space-4);
+                  background: rgba(59, 130, 246, 0.1);
+                  border: 2px solid var(--accent-blue);
+                  border-left: 4px solid var(--accent-blue);
+                  border-radius: var(--radius-md);
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <i
+                    class="fas fa-info-circle"
+                    style="color: var(--accent-blue); font-size: var(--text-xl)"
+                  ></i>
+                  <span
+                    style="
+                      color: var(--ink);
+                      font-weight: var(--font-medium);
+                      font-size: var(--text-sm);
+                    "
+                    >No approved requests.</span
+                  >
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Rejected Tab -->
+            <div class="tab-panel" data-panel="rejected" style="display: none">
+              {% if rejected_requests %} {% include
+              'approvals/partials/request_table.html' with
+              requests=rejected_requests %} {% else %}
+              <div
+                style="
+                  padding: var(--space-4);
+                  background: rgba(59, 130, 246, 0.1);
+                  border: 2px solid var(--accent-blue);
+                  border-left: 4px solid var(--accent-blue);
+                  border-radius: var(--radius-md);
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <i
+                    class="fas fa-info-circle"
+                    style="color: var(--accent-blue); font-size: var(--text-xl)"
+                  ></i>
+                  <span
+                    style="
+                      color: var(--ink);
+                      font-weight: var(--font-medium);
+                      font-size: var(--text-sm);
+                    "
+                    >No rejected requests.</span
+                  >
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Uploaded Tab -->
+            <div class="tab-panel" data-panel="uploaded" style="display: none">
+              {% if uploaded_requests %} {% include
+              'approvals/partials/request_table.html' with
+              requests=uploaded_requests %} {% else %}
+              <div
+                style="
+                  padding: var(--space-4);
+                  background: rgba(59, 130, 246, 0.1);
+                  border: 2px solid var(--accent-blue);
+                  border-left: 4px solid var(--accent-blue);
+                  border-radius: var(--radius-md);
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                  "
+                >
+                  <i
+                    class="fas fa-info-circle"
+                    style="color: var(--accent-blue); font-size: var(--text-xl)"
+                  ></i>
+                  <span
+                    style="
+                      color: var(--ink);
+                      font-weight: var(--font-medium);
+                      font-size: var(--text-sm);
+                    "
+                    >No uploaded requests.</span
+                  >
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- No Requests Message -->
+      <div class="card">
+        <div
+          class="card-body"
+          style="text-align: center; padding: var(--space-8)"
+        >
+          <div style="margin-bottom: var(--space-5)">
+            <i
+              class="fas fa-inbox"
+              style="color: var(--gray-400); font-size: 4rem"
+            ></i>
+          </div>
+          <h5
+            style="
+              font-family: var(--font-display);
+              font-weight: var(--font-bold);
+              text-transform: uppercase;
+              color: var(--ink);
+              margin-bottom: var(--space-3);
+            "
+          >
+            No Approval Requests Found
+          </h5>
+          <p
+            style="
+              color: var(--gray-600);
+              font-size: var(--text-base);
+              max-width: 500px;
+              margin: 0 auto;
+            "
+          >
+            There are no approval requests from your team members yet. When team
+            members submit content for approval, it will appear here.
+          </p>
+        </div>
+      </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}

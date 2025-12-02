@@ -1,80 +1,92 @@
-{% extends 'base.html' %}
-
-{% block title %}{{ title }} - Creator Backoffice{% endblock %}
-
+{% extends 'base_sidebar.html' %} 
+{% block title %}{{ title }} - CreatorFlow{% endblock %} 
 {% block content %}
-<div class="row">
+<div id="view-reject-request" class="view-section">
+  <div class="row">
     <div class="col-md-8 offset-md-2">
-        <div class="mb-3">
-            <a href="{% url 'approvals:request_detail' request_obj.pk %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Request
-            </a>
+      <div class="mb-3">
+        <a
+          href="{% url 'approvals:request_detail' request_obj.pk %}"
+          class="btn btn-outline-secondary"
+        >
+          <i class="bi bi-arrow-left"></i> Back to Request
+        </a>
+      </div>
+
+      <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+          <h3 class="mb-0">Reject Approval Request</h3>
         </div>
-        
-        <div class="card border-danger">
-            <div class="card-header bg-danger text-white">
-                <h3 class="mb-0">Reject Approval Request</h3>
+        <div class="card-body">
+          <div class="alert alert-warning">
+            <h5>
+              <i class="bi bi-exclamation-triangle"></i> You are about to reject
+              this request
+            </h5>
+            <p class="mb-0">
+              Please provide a detailed reason so the editor can understand what
+              needs to be improved.
+            </p>
+          </div>
+
+          <div class="mb-4">
+            <h5>Request Information</h5>
+            <table class="table table-sm">
+              <tr>
+                <th>File:</th>
+                <td>{{ request_obj.file.name }}</td>
+              </tr>
+              <tr>
+                <th>Submitted by:</th>
+                <td>{{ request_obj.editor.username }}</td>
+              </tr>
+              <tr>
+                <th>Submitted on:</th>
+                <td>{{ request_obj.created_at|date:"Y-m-d H:i" }}</td>
+              </tr>
+            </table>
+
+            {% if request_obj.description %}
+            <div class="mt-3">
+              <strong>Editor's Description:</strong>
+              <div class="alert alert-light">
+                {{ request_obj.description|linebreaks }}
+              </div>
             </div>
-            <div class="card-body">
-                <div class="alert alert-warning">
-                    <h5><i class="bi bi-exclamation-triangle"></i> You are about to reject this request</h5>
-                    <p class="mb-0">Please provide a detailed reason so the editor can understand what needs to be improved.</p>
-                </div>
-                
-                <div class="mb-4">
-                    <h5>Request Information</h5>
-                    <table class="table table-sm">
-                        <tr>
-                            <th>File:</th>
-                            <td>{{ request_obj.file.name }}</td>
-                        </tr>
-                        <tr>
-                            <th>Submitted by:</th>
-                            <td>{{ request_obj.editor.username }}</td>
-                        </tr>
-                        <tr>
-                            <th>Submitted on:</th>
-                            <td>{{ request_obj.created_at|date:"Y-m-d H:i" }}</td>
-                        </tr>
-                    </table>
-                    
-                    {% if request_obj.description %}
-                        <div class="mt-3">
-                            <strong>Editor's Description:</strong>
-                            <div class="alert alert-light">
-                                {{ request_obj.description|linebreaks }}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        {{ form.rejection_reason.label_tag }}
-                        {{ form.rejection_reason }}
-                        {% if form.rejection_reason.help_text %}
-                            <small class="form-text text-muted">{{ form.rejection_reason.help_text }}</small>
-                        {% endif %}
-                        {% if form.rejection_reason.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.rejection_reason.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-x-circle"></i> Confirm Rejection
-                        </button>
-                        <a href="{% url 'approvals:request_detail' request_obj.pk %}" class="btn btn-secondary">
-                            Cancel
-                        </a>
-                    </div>
-                </form>
+            {% endif %}
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              {{ form.rejection_reason.label_tag }} {{ form.rejection_reason }}
+              {% if form.rejection_reason.help_text %}
+              <small class="form-text text-muted"
+                >{{ form.rejection_reason.help_text }}</small
+              >
+              {% endif %} {% if form.rejection_reason.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.rejection_reason.errors }}
+              </div>
+              {% endif %}
             </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-circle"></i> Confirm Rejection
+              </button>
+              <a
+                href="{% url 'approvals:request_detail' request_obj.pk %}"
+                class="btn btn-secondary"
+              >
+                Cancel
+              </a>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

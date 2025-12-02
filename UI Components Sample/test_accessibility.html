@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Test - CreatorFlow</title>
+    <link rel="stylesheet" href="static/css/sidebar-redesign.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Skip to content link -->
+    <a href="#main-content" class="skip-to-content">Skip to main content</a>
+    
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay" aria-hidden="true"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="logo" role="banner">
+            CREATOR<span>FLOW</span>
+        </div>
+        
+        <nav class="sidebar-nav" aria-label="Primary navigation">
+            <div class="nav-group" role="group" aria-labelledby="nav-overview">
+                <div class="nav-group-label" id="nav-overview">Overview</div>
+                <a href="#dashboard" class="nav-link active" data-target="dashboard" aria-label="Go to Dashboard">
+                    <i class="fas fa-home" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            
+            <div class="nav-group" role="group" aria-labelledby="nav-growth">
+                <div class="nav-group-label" id="nav-growth">Growth</div>
+                <a href="#analytics" class="nav-link" data-target="analytics" aria-label="Go to Analytics">
+                    <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#testing" class="nav-link" data-target="testing" aria-label="Go to A/B Testing">
+                    <i class="fas fa-flask" aria-hidden="true"></i>
+                    <span>A/B Testing</span>
+                </a>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-profile" role="complementary" aria-label="User profile">
+                <div class="user-avatar" aria-hidden="true">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Test User</div>
+                    <div class="user-plan">Creator</div>
+                </div>
+                <a href="#logout" class="logout-btn" aria-label="Logout from CreatorFlow">
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content" id="main-content" role="main">
+        <div class="toast-container" role="region" aria-label="Notifications" aria-live="polite" aria-atomic="true"></div>
+        
+        <h1>Accessibility Test Page</h1>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Accessibility Features</h2>
+                <p>Testing WCAG AA compliance</p>
+            </div>
+            <div class="card-body">
+                <h3>Features Implemented:</h3>
+                <ul>
+                    <li>✓ Skip to main content link</li>
+                    <li>✓ ARIA labels on navigation elements</li>
+                    <li>✓ Keyboard navigation support (Arrow keys, Home, End, Enter, Space)</li>
+                    <li>✓ Focus-visible styles</li>
+                    <li>✓ Prefers-reduced-motion support</li>
+                    <li>✓ High contrast mode support</li>
+                    <li>✓ WCAG AA color contrast ratios</li>
+                    <li>✓ Semantic HTML (aside, nav, main, role attributes)</li>
+                    <li>✓ Screen reader support</li>
+                </ul>
+                
+                <h3>Test Instructions:</h3>
+                <ol>
+                    <li><strong>Tab Navigation:</strong> Press Tab to navigate through interactive elements</li>
+                    <li><strong>Skip Link:</strong> Press Tab from the top - first element should be "Skip to main content"</li>
+                    <li><strong>Arrow Keys:</strong> Focus on a navigation link and use Up/Down arrows to navigate</li>
+                    <li><strong>Home/End:</strong> Press Home to go to first nav item, End for last</li>
+                    <li><strong>Escape:</strong> Open mobile menu and press Escape to close</li>
+                    <li><strong>Screen Reader:</strong> Enable screen reader to test ARIA labels</li>
+                    <li><strong>Reduced Motion:</strong> Enable "Reduce motion" in OS settings to test</li>
+                </ol>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="testToast('success')">Test Success Toast</button>
+                    <button class="btn btn-red" onclick="testToast('error')">Test Error Toast</button>
+                    <button class="btn btn-purple" onclick="testToast('warning')">Test Warning Toast</button>
+                    <button class="btn btn-blue" onclick="testToast('info')">Test Info Toast</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Color Contrast Test</h2>
+            </div>
+            <div class="card-body">
+                <p style="color: var(--gray-600);">Gray 600 on white background (7.5:1 - AAA)</p>
+                <p style="color: var(--gray-700);">Gray 700 on white background (10.7:1 - AAA)</p>
+                <p style="color: var(--accent-red);">Accent red on white background (4.5:1 - AA)</p>
+                <div style="background: var(--ink); padding: 20px; border-radius: 8px;">
+                    <p style="color: #b0b7c3; margin: 0;">Light gray on dark background (4.5:1 - AA)</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="static/js/main.js"></script>
+    <script>
+        function testToast(type) {
+            const messages = {
+                success: 'Operation completed successfully!',
+                error: 'An error occurred. Please try again.',
+                warning: 'Warning: This action cannot be undone.',
+                info: 'Here is some helpful information.'
+            };
+            showToast(messages[type], type);
+        }
+    </script>
+</body>
+</html>

@@ -1,97 +1,115 @@
-{% extends 'base.html' %}
-
-{% block title %}Create Creator Account - Creator Backoffice Platform{% endblock %}
-
+{% extends 'base.html' %} 
+{% block title %}Create Creator Account - Creator Backoffice Platform{% endblock %} 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Create Your Creator Account</h4>
-            </div>
-            <div class="card-body">
-                <p class="text-muted mb-4">
-                    Register as a creator to start managing your team, Google Drive files, and YouTube channel.
-                </p>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger small">
-                                {{ form.username.errors }}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">Choose a unique username for your account.</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger small">
-                                {{ form.email.errors }}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">We'll use this email for important notifications.</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="text-danger small">
-                                {{ form.password1.errors }}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <small>
-                                Your password must contain at least 8 characters and can't be entirely numeric.
-                            </small>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="text-danger small">
-                                {{ form.password2.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <strong>Creator Account Benefits:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>Full access to all platform features</li>
-                            <li>Manage team members (Managers and Editors)</li>
-                            <li>Connect Google Drive and YouTube integrations</li>
-                            <li>Approve video uploads</li>
-                            <li>Upload directly to YouTube</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            Create Creator Account
-                        </button>
-                    </div>
-                </form>
-                
-                <hr class="my-4">
-                
-                <div class="text-center">
-                    <p class="mb-0">
-                        Already have an account? 
-                        <a href="{% url 'accounts:login' %}">Login here</a>
-                    </p>
-                </div>
-            </div>
-        </div>
+
+<div
+  style="
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  "
+>
+  <div class="auth-card" style="max-width: 480px">
+    <h2 style="margin-bottom: 20px">Create Your Creator Account</h2>
+
+    <p style="color: #666; margin-bottom: 20px">
+      Register as a creator to start managing your team, Google Drive files, and
+      YouTube channel.
+    </p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Username -->
+      <div class="form-field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }} {% if form.username.errors %}
+        <div class="invalid-feedback">{{ form.username.errors.0 }}</div>
+        {% endif %}
+        <small style="color: #666; font-size: 0.75rem"
+          >Choose a unique username for your account.</small
+        >
+      </div>
+
+      <!-- Email -->
+      <div class="form-field">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }} {% if form.email.errors %}
+        <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+        {% endif %}
+        <small style="color: #666; font-size: 0.75rem"
+          >We'll use this email for important notifications.</small
+        >
+      </div>
+
+      <!-- Password -->
+      <div class="form-field">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {{ form.password1 }} {% if form.password1.errors %}
+        <div class="invalid-feedback">{{ form.password1.errors.0 }}</div>
+        {% endif %}
+        <small style="color: #666; font-size: 0.75rem">
+          Your password must contain at least 8 characters and can't be entirely
+          numeric.
+        </small>
+      </div>
+
+      <!-- Password 2 -->
+      <div class="form-field">
+        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+        {{ form.password2 }} {% if form.password2.errors %}
+        <div class="invalid-feedback">{{ form.password2.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Benefits Box -->
+      <div
+        style="
+          background: #eef6ff;
+          padding: 15px;
+          border-radius: 6px;
+          margin-top: 15px;
+          margin-bottom: 15px;
+          border: 1px solid #cfe3ff;
+        "
+      >
+        <strong>Creator Account Benefits:</strong>
+        <ul
+          style="
+            margin: 10px 0 0 18px;
+            padding: 0;
+            color: #333;
+            font-size: 0.9rem;
+          "
+        >
+          <li>Full access to all platform features</li>
+          <li>Manage team members (Managers and Editors)</li>
+          <li>Connect Google Drive and YouTube integrations</li>
+          <li>Approve video uploads</li>
+          <li>Upload directly to YouTube</li>
+        </ul>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        class="btn btn-primary"
+        style="width: 100%; margin-top: 10px; padding: 10px 0"
+      >
+        Create Creator Account
+      </button>
+    </form>
+
+    <div class="register-box" style="margin-top: 20px">
+      Already have an account?
+      <br />
+      <a href="{% url 'accounts:login' %}" class="btn" style="margin-top: 10px">
+        Login Here
+      </a>
     </div>
+  </div>
 </div>
+
 {% endblock %}

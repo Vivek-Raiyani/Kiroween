@@ -1,0 +1,27 @@
+{
+  "name": "creatorflow-ui",
+  "version": "1.0.0",
+  "description": "CreatorFlow UI Redesign - Build tools for CSS/JS optimization",
+  "scripts": {
+    "build:css": "postcss static/css/sidebar-redesign.css -o static/css/sidebar-redesign.prefixed.css && cssnano static/css/sidebar-redesign.prefixed.css static/css/sidebar-redesign.min.css",
+    "build:js": "terser static/js/main.js -o static/js/main.min.js -c -m",
+    "build": "npm run build:css && npm run build:js",
+    "watch:css": "postcss static/css/sidebar-redesign.css -o static/css/sidebar-redesign.css --watch",
+    "test:performance": "echo 'Run: npm run build && python manage.py collectstatic --noinput'"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "cssnano": "^6.0.1",
+    "postcss": "^8.4.31",
+    "postcss-cli": "^10.1.0",
+    "terser": "^5.24.0"
+  },
+  "browserslist": [
+    "Chrome >= 90",
+    "Firefox >= 88",
+    "Safari >= 14",
+    "Edge >= 90",
+    "iOS >= 14",
+    "Android >= 90"
+  ]
+}

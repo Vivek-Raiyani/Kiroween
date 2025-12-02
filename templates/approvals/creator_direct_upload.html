@@ -1,196 +1,351 @@
-{% extends 'base.html' %}
-
-{% block title %}{{ title }} - Creator Backoffice{% endblock %}
-
+{% extends 'base_sidebar.html' %} 
+{% block title %}{{ title }} - CreatorFlow{% endblock %} 
 {% block content %}
-<div class="row">
+<div id="view-direct-upload" class="view-section">
+  <div class="row">
     <div class="col-lg-8 offset-lg-2">
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h4 class="mb-0">
-                    <i class="bi bi-youtube"></i> Direct Upload to YouTube
-                </h4>
-                <p class="mb-0 mt-2"><small>Upload videos directly to your YouTube channel without approval</small></p>
-            </div>
-            <div class="card-body">
-                {% if not youtube_connected %}
-                    <div class="alert alert-danger">
-                        <h6><i class="bi bi-exclamation-triangle"></i> YouTube Not Connected</h6>
-                        <p class="mb-2">You need to connect your YouTube channel before you can upload videos.</p>
-                        <a href="{% url 'integrations:dashboard' %}" class="btn btn-danger btn-sm">
-                            <i class="bi bi-youtube"></i> Connect YouTube
-                        </a>
-                    </div>
-                {% elif not drive_connected %}
-                    <div class="alert alert-warning">
-                        <h6><i class="bi bi-exclamation-triangle"></i> Google Drive Not Connected</h6>
-                        <p class="mb-2">Connect Google Drive to select existing files or upload new ones.</p>
-                        <a href="{% url 'integrations:dashboard' %}" class="btn btn-warning btn-sm">
-                            <i class="bi bi-google"></i> Connect Google Drive
-                        </a>
-                    </div>
-                {% endif %}
-                
-                <form method="post" enctype="multipart/form-data" id="uploadForm">
-                    {% csrf_token %}
-                    
-                    <!-- Source Selection -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">{{ form.source.label }}</label>
-                        <div class="form-text mb-2">{{ form.source.help_text }}</div>
-                        {% for radio in form.source %}
-                            <div class="form-check">
-                                {{ radio.tag }}
-                                <label class="form-check-label" for="{{ radio.id_for_label }}">
-                                    {{ radio.choice_label }}
-                                </label>
-                            </div>
-                        {% endfor %}
-                        {% if form.source.errors %}
-                            <div class="text-danger mt-1">{{ form.source.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Drive File Selection -->
-                    <div class="mb-3" id="driveFileSection">
-                        <label for="{{ form.drive_file.id_for_label }}" class="form-label">
-                            {{ form.drive_file.label }}
-                        </label>
-                        {{ form.drive_file }}
-                        <div class="form-text">{{ form.drive_file.help_text }}</div>
-                        {% if form.drive_file.errors %}
-                            <div class="text-danger mt-1">{{ form.drive_file.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- File Upload -->
-                    <div class="mb-3" id="uploadFileSection" style="display: none;">
-                        <label for="{{ form.upload_file.id_for_label }}" class="form-label">
-                            {{ form.upload_file.label }}
-                        </label>
-                        {{ form.upload_file }}
-                        <div class="form-text">{{ form.upload_file.help_text }}</div>
-                        {% if form.upload_file.errors %}
-                            <div class="text-danger mt-1">{{ form.upload_file.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-                    
-                    <hr class="my-4">
-                    
-                    <!-- Video Metadata -->
-                    <h5 class="mb-3">Video Details</h5>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.title.id_for_label }}" class="form-label">
-                            {{ form.title.label }} <span class="text-danger">*</span>
-                        </label>
-                        {{ form.title }}
-                        <div class="form-text">{{ form.title.help_text }}</div>
-                        {% if form.title.errors %}
-                            <div class="text-danger mt-1">{{ form.title.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">
-                            {{ form.description.label }} <span class="text-danger">*</span>
-                        </label>
-                        {{ form.description }}
-                        <div class="form-text">{{ form.description.help_text }}</div>
-                        {% if form.description.errors %}
-                            <div class="text-danger mt-1">{{ form.description.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.privacy_status.id_for_label }}" class="form-label">
-                            {{ form.privacy_status.label }} <span class="text-danger">*</span>
-                        </label>
-                        {{ form.privacy_status }}
-                        <div class="form-text">{{ form.privacy_status.help_text }}</div>
-                        {% if form.privacy_status.errors %}
-                            <div class="text-danger mt-1">{{ form.privacy_status.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.tags.id_for_label }}" class="form-label">
-                            {{ form.tags.label }}
-                        </label>
-                        {{ form.tags }}
-                        <div class="form-text">{{ form.tags.help_text }}</div>
-                        {% if form.tags.errors %}
-                            <div class="text-danger mt-1">{{ form.tags.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="alert alert-warning">
-                        <h6><i class="bi bi-exclamation-triangle"></i> Important Notes:</h6>
-                        <ul class="mb-0">
-                            <li>The upload process may take several minutes depending on file size</li>
-                            <li>Do not close this page until the upload is complete</li>
-                            <li>Make sure you have sufficient YouTube API quota available</li>
-                            <li>The video will be processed by YouTube after upload</li>
-                            {% if form.source.value == 'upload' or not form.source.value %}
-                            <li>New files will be uploaded to Google Drive first, then to YouTube</li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-danger btn-lg" id="uploadBtn" {% if not youtube_connected or not drive_connected %}disabled{% endif %}>
-                            <i class="bi bi-youtube"></i> Upload to YouTube
-                        </button>
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                            Cancel
-                        </a>
-                    </div>
-                </form>
-            </div>
+      <div class="card">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-youtube"></i> Direct Upload to YouTube
+          </h4>
+          <p class="mb-0 mt-2">
+            <small
+              >Upload videos directly to your YouTube channel without
+              approval</small
+            >
+          </p>
         </div>
+        <div class="card-body">
+          {% if not youtube_connected %}
+          <div class="alert alert-danger">
+            <h6>
+              <i class="bi bi-exclamation-triangle"></i> YouTube Not Connected
+            </h6>
+            <p class="mb-2">
+              You need to connect your YouTube channel before you can upload
+              videos.
+            </p>
+            <a
+              href="{% url 'integrations:dashboard' %}"
+              class="btn btn-danger btn-sm"
+            >
+              <i class="bi bi-youtube"></i> Connect YouTube
+            </a>
+          </div>
+          {% elif not drive_connected %}
+          <div class="alert alert-warning">
+            <h6>
+              <i class="bi bi-exclamation-triangle"></i> Google Drive Not
+              Connected
+            </h6>
+            <p class="mb-2">
+              Connect Google Drive to select existing files or upload new ones.
+            </p>
+            <a
+              href="{% url 'integrations:dashboard' %}"
+              class="btn btn-warning btn-sm"
+            >
+              <i class="bi bi-google"></i> Connect Google Drive
+            </a>
+          </div>
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+
+            <!-- Source Selection -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">{{ form.source.label }}</label>
+              <div class="form-text mb-2">{{ form.source.help_text }}</div>
+              {% for radio in form.source %}
+              <div class="form-check">
+                {{ radio.tag }}
+                <label class="form-check-label" for="{{ radio.id_for_label }}">
+                  {{ radio.choice_label }}
+                </label>
+              </div>
+              {% endfor %} {% if form.source.errors %}
+              <div class="text-danger mt-1">{{ form.source.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Drive File Selection -->
+            <div class="mb-3" id="driveFileSection">
+              <label
+                for="{{ form.drive_file.id_for_label }}"
+                class="form-label"
+              >
+                {{ form.drive_file.label }}
+              </label>
+              {{ form.drive_file }}
+              <div class="form-text">{{ form.drive_file.help_text }}</div>
+              {% if form.drive_file.errors %}
+              <div class="text-danger mt-1">{{ form.drive_file.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- File Upload -->
+            <div class="mb-3" id="uploadFileSection" style="display: none">
+              <label
+                for="{{ form.upload_file.id_for_label }}"
+                class="form-label"
+              >
+                {{ form.upload_file.label }}
+              </label>
+              {{ form.upload_file }}
+              <div class="form-text">{{ form.upload_file.help_text }}</div>
+              {% if form.upload_file.errors %}
+              <div class="text-danger mt-1">{{ form.upload_file.errors }}</div>
+              {% endif %}
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <hr class="my-4" />
+
+            <!-- Video Metadata -->
+            <h5 class="mb-3">Video Details</h5>
+
+            <div class="mb-3">
+              <label for="{{ form.title.id_for_label }}" class="form-label">
+                {{ form.title.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.title }}
+              <div class="form-text">{{ form.title.help_text }}</div>
+              {% if form.title.errors %}
+              <div class="text-danger mt-1">{{ form.title.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label
+                for="{{ form.description.id_for_label }}"
+                class="form-label"
+              >
+                {{ form.description.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.description }}
+              <div class="form-text">{{ form.description.help_text }}</div>
+              {% if form.description.errors %}
+              <div class="text-danger mt-1">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label
+                for="{{ form.privacy_status.id_for_label }}"
+                class="form-label"
+              >
+                {{ form.privacy_status.label }}
+                <span class="text-danger">*</span>
+              </label>
+              {{ form.privacy_status }}
+              <div class="form-text">{{ form.privacy_status.help_text }}</div>
+              {% if form.privacy_status.errors %}
+              <div class="text-danger mt-1">
+                {{ form.privacy_status.errors }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.tags.id_for_label }}" class="form-label">
+                {{ form.tags.label }}
+              </label>
+              {{ form.tags }}
+              <div class="form-text">{{ form.tags.help_text }}</div>
+              {% if form.tags.errors %}
+              <div class="text-danger mt-1">{{ form.tags.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Thumbnail Upload Section -->
+            <div class="card mb-3">
+              <div class="card-header">
+                <h6 class="mb-0">
+                  <i class="bi bi-image"></i> Custom Thumbnail (Optional)
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">Thumbnail Source</label>
+                  {% for choice in thumbnail_form.thumbnail_source %}
+                  <div class="form-check">
+                    {{ choice.tag }}
+                    <label
+                      class="form-check-label"
+                      for="{{ choice.id_for_label }}"
+                    >
+                      {{ choice.choice_label }}
+                    </label>
+                  </div>
+                  {% endfor %}
+                  <small class="form-text text-muted"
+                    >{{ thumbnail_form.thumbnail_source.help_text }}</small
+                  >
+                </div>
+
+                <div
+                  id="thumbnail-upload-section"
+                  class="mb-3"
+                  style="display: none"
+                >
+                  {{ thumbnail_form.thumbnail_file }}
+                  <small class="form-text text-muted"
+                    >{{ thumbnail_form.thumbnail_file.help_text }}</small
+                  >
+                </div>
+
+                <div
+                  id="thumbnail-drive-section"
+                  class="mb-3"
+                  style="display: none"
+                >
+                  {{ thumbnail_form.drive_file_id }}
+                  <p class="text-muted">
+                    Select a thumbnail image from your Google Drive (feature
+                    coming soon)
+                  </p>
+                </div>
+
+                <div
+                  id="thumbnail-frame-section"
+                  class="mb-3"
+                  style="display: none"
+                >
+                  {{ thumbnail_form.video_frame_time }}
+                  <small class="form-text text-muted"
+                    >{{ thumbnail_form.video_frame_time.help_text }}</small
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-warning">
+              <h6>
+                <i class="bi bi-exclamation-triangle"></i> Important Notes:
+              </h6>
+              <ul class="mb-0">
+                <li>
+                  The upload process may take several minutes depending on file
+                  size
+                </li>
+                <li>Do not close this page until the upload is complete</li>
+                <li>
+                  Make sure you have sufficient YouTube API quota available
+                </li>
+                <li>The video will be processed by YouTube after upload</li>
+                {% if form.source.value == 'upload' or not form.source.value %}
+                <li>
+                  New files will be uploaded to Google Drive first, then to
+                  YouTube
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button
+                type="submit"
+                class="btn btn-danger btn-lg"
+                id="uploadBtn"
+                {%
+                if
+                not
+                youtube_connected
+                or
+                not
+                drive_connected
+                %}disabled{%
+                endif
+                %}
+              >
+                <i class="bi bi-youtube"></i> Upload to YouTube
+              </button>
+              <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
-// Handle source selection toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const driveRadio = document.getElementById('id_source_0');
-    const uploadRadio = document.getElementById('id_source_1');
-    const driveFileSection = document.getElementById('driveFileSection');
-    const uploadFileSection = document.getElementById('uploadFileSection');
-    
-    function updateSections() {
+  <script>
+    // Handle source selection toggle
+    document.addEventListener("DOMContentLoaded", function () {
+      const driveRadio = document.getElementById("id_source_0");
+      const uploadRadio = document.getElementById("id_source_1");
+      const driveFileSection = document.getElementById("driveFileSection");
+      const uploadFileSection = document.getElementById("uploadFileSection");
+
+      function updateSections() {
         if (driveRadio.checked) {
-            driveFileSection.style.display = 'block';
-            uploadFileSection.style.display = 'none';
-            document.getElementById('{{ form.drive_file.id_for_label }}').required = true;
-            document.getElementById('{{ form.upload_file.id_for_label }}').required = false;
+          driveFileSection.style.display = "block";
+          uploadFileSection.style.display = "none";
+          document.getElementById(
+            "{{ form.drive_file.id_for_label }}"
+          ).required = true;
+          document.getElementById(
+            "{{ form.upload_file.id_for_label }}"
+          ).required = false;
         } else if (uploadRadio.checked) {
-            driveFileSection.style.display = 'none';
-            uploadFileSection.style.display = 'block';
-            document.getElementById('{{ form.drive_file.id_for_label }}').required = false;
-            document.getElementById('{{ form.upload_file.id_for_label }}').required = true;
+          driveFileSection.style.display = "none";
+          uploadFileSection.style.display = "block";
+          document.getElementById(
+            "{{ form.drive_file.id_for_label }}"
+          ).required = false;
+          document.getElementById(
+            "{{ form.upload_file.id_for_label }}"
+          ).required = true;
         }
-    }
-    
-    driveRadio.addEventListener('change', updateSections);
-    uploadRadio.addEventListener('change', updateSections);
-    
-    // Initialize on page load
-    updateSections();
-});
+      }
 
-// Handle form submission
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    const uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...';
-});
-</script>
+      driveRadio.addEventListener("change", updateSections);
+      uploadRadio.addEventListener("change", updateSections);
+
+      // Initialize on page load
+      updateSections();
+    });
+
+    // Handle form submission
+    document
+      .getElementById("uploadForm")
+      .addEventListener("submit", function (e) {
+        const uploadBtn = document.getElementById("uploadBtn");
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...';
+      });
+
+    // Show/hide thumbnail sections based on selected source
+    document
+      .querySelectorAll('input[name="thumbnail_source"]')
+      .forEach(function (radio) {
+        radio.addEventListener("change", function () {
+          document.getElementById("thumbnail-upload-section").style.display =
+            "none";
+          document.getElementById("thumbnail-drive-section").style.display =
+            "none";
+          document.getElementById("thumbnail-frame-section").style.display =
+            "none";
+
+          if (this.value === "upload") {
+            document.getElementById("thumbnail-upload-section").style.display =
+              "block";
+          } else if (this.value === "drive") {
+            document.getElementById("thumbnail-drive-section").style.display =
+              "block";
+          } else if (this.value === "video_frame") {
+            document.getElementById("thumbnail-frame-section").style.display =
+              "block";
+          }
+        });
+      });
+  </script>
+</div>
 {% endblock %}

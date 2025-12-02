@@ -726,3 +726,103 @@ class InvitationEmailTests(TestCase):
         # Check email contains registration URL
         email = mail.outbox[0]
         self.assertIn(f'/accounts/register/{invitation.invitation_token}/', email.body)
+
+
+class NavigationMenuVisibilityTests(TestCase):
+    """Test navigation menu visibility based on user roles."""
+    
+    def setUp(self):
+        """Set up test data."""
+        self.client = Client()
+        
+        self.creator = User.objects.create_user(
+            username='creator1',
+            email='creator@test.com',
+            password='testpass123',
+            role='creator'
+        )
+        
+        self.manager = User.objects.create_user(
+            username='manager1',
+            email='manager@test.com',
+            password='testpass123',
+            role='manager',
+            creator=self.creator
+        )
+        
+        self.editor = User.objects.create_user(
+            username='editor1',
+            email='editor@test.com',
+            password='testpass123',
+            role='editor',
+            creator=self.creator
+        )
+        
+        self.dashboard_url = reverse('dashboard')
+    
+    def test_creator_sees_analytics_menu(self):
+        """Test creator can see Analytics menu in navigation."""
+        self.client.login(username='creator1', password='testpass123')
+        response = self.client.get(self.dashboard_url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Analytics')
+        self.assertContains(response, reverse('analytics:dashboard'))
+        self.assertContains(response, 'Channel Analytics')
+        self.assertContains(response, 'Competitor Analysis')
+        self.assertContains(response, 'SEO Insights')
+        self.assertContains(response, 'Best Time to Post')
+    
+    def test_creator_sees_abtest_menu(self):
+        """Test creator can see A/B Testing menu in navigation."""
+        self.client.login(username='creator1', password='testpass123')
+        response = self.client.get(self.dashboard_url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A/B Testing')
+        self.assertContains(response, reverse('abtesting:test_list'))
+    
+    def test_manager_sees_analytics_menu(self):
+        """Test manager can see Analytics menu in navigation."""
+        self.client.login(username='manager1', password='testpass123')
+        response = self.client.get(self.dashboard_url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Analytics')
+        self.assertContains(response, reverse('analytics:dashboard'))
+    
+    def test_manager_sees_abtest_menu(self):
+        """Test manager can see A/B Testing menu in navigation."""
+        self.client.login(username='manager1', password='testpass123')
+        response = self.client.get(self.dashboard_url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A/B Testing')
+        self.assertContains(response, reverse('abtesting:test_list'))
+    
+    def test_editor_does_not_see_analytics_menu(self):
+        """Test editor cannot see Analytics menu in navigation."""
+        self.client.login(username='editor1', password='testpass123')
+        response = self.client.get(self.dashboard_url)
+        
+        self.assertEqual(response.status_code, 200)
+        # Editor should not see the Analytics dropdown
+        self.assertNotContains(response, 'id="analyticsDropdown"')
+    
+    def test_editor_does_not_see_abtest_menu(self):
+        """Test editor cannot see A/B Testing menu in navigation."""
+        self.client.login(username='editor1', password='testpass123')
+        response = self.client.get(self.dashboard_url)
+        
+        self.assertEqual(response.status_code, 200)
+        # Editor should not see A/B Testing link
+        # We need to be careful here - the text "A/B Testing" might appear elsewhere
+        # So we check for the specific navigation link
+        content = response.content.decode('utf-8')
+        # Check that the A/B Testing nav link is not present
+        self.assertNotIn('href="{% url \'abtesting:test_list\' %}"', content)
+        # More robust: check that the Flask icon + A/B Testing combo is not in nav
+        if 'fa-flask' in content:
+            # If flask icon exists, it should not be near "A/B Testing" in the nav
+            nav_section = content.split('<nav')[1].split('</nav>')[0] if '<nav' in content else ''
+            self.assertNotIn('A/B Testing', nav_section)

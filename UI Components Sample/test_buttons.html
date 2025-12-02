@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Component Test</title>
+    <link rel="stylesheet" href="static/css/sidebar-redesign.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border: 2px solid var(--ink);
+            border-radius: 12px;
+        }
+        .test-section h2 {
+            margin-bottom: 20px;
+        }
+        .button-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Button Component System Test</h1>
+    
+    <div class="test-section">
+        <h2>Base Button Styles</h2>
+        <div class="button-row">
+            <button class="btn">Default Button</button>
+            <button class="btn" disabled>Disabled Button</button>
+            <button class="btn"><i class="fas fa-star"></i> With Icon</button>
+            <button class="btn">With Icon <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Button Variants (Requirements 4.3)</h2>
+        <div class="button-row">
+            <button class="btn btn-primary">Primary (Black)</button>
+            <button class="btn btn-purple">Purple (Marketplace)</button>
+            <button class="btn btn-green">Green (ROI/Success)</button>
+            <button class="btn btn-red">Red (Accent)</button>
+            <button class="btn btn-blue">Blue (Info)</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Outline Variants</h2>
+        <div class="button-row">
+            <button class="btn btn-outline">Outline</button>
+            <button class="btn btn-outline-red">Outline Red</button>
+            <button class="btn btn-outline-purple">Outline Purple</button>
+            <button class="btn btn-outline-green">Outline Green</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Button Sizes</h2>
+        <div class="button-row">
+            <button class="btn btn-primary btn-sm">Small</button>
+            <button class="btn btn-primary">Default</button>
+            <button class="btn btn-primary btn-lg">Large</button>
+            <button class="btn btn-primary btn-xl">Extra Large</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Icon Alignment (Requirements 4.4)</h2>
+        <div class="button-row">
+            <button class="btn btn-purple"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            <button class="btn btn-green"><i class="fas fa-check"></i> Confirm</button>
+            <button class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+            <button class="btn btn-red"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Icon-Only Buttons</h2>
+        <div class="button-row">
+            <button class="btn btn-icon btn-sm"><i class="fas fa-heart"></i></button>
+            <button class="btn btn-icon"><i class="fas fa-heart"></i></button>
+            <button class="btn btn-icon btn-lg"><i class="fas fa-heart"></i></button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Button Group</h2>
+        <div class="btn-group">
+            <button class="btn btn-outline">Option 1</button>
+            <button class="btn btn-outline">Option 2</button>
+            <button class="btn btn-outline">Option 3</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Block Button</h2>
+        <button class="btn btn-primary btn-block">Full Width Button</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Hover & Active States Test (Requirements 4.2)</h2>
+        <p>Hover over buttons to see transform and shadow effects. Click to see active state with scale transform.</p>
+        <div class="button-row">
+            <button class="btn btn-primary">Hover Me</button>
+            <button class="btn btn-purple">Click Me</button>
+            <button class="btn btn-green">Test Active State</button>
+        </div>
+    </div>
+
+</body>
+</html>

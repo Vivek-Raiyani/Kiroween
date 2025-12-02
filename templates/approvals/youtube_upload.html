@@ -1,122 +1,268 @@
-{% extends 'base.html' %}
-
-{% block title %}{{ title }} - Creator Backoffice{% endblock %}
-
+{% extends 'base_sidebar.html' %} 
+{% block title %}{{ title }} - CreatorFlow{% endblock %} 
 {% block content %}
-<div class="row">
+<div id="view-youtube-upload" class="view-section">
+  <div class="row">
     <div class="col-lg-8 offset-lg-2">
-        <div class="mb-4">
-            <a href="{% url 'approvals:youtube_upload_list' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Upload List
-            </a>
-        </div>
-        
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h4 class="mb-0">
-                    <i class="bi bi-youtube"></i> Upload to YouTube
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <h6><i class="bi bi-info-circle"></i> Video Information</h6>
-                    <p class="mb-1"><strong>File:</strong> {{ request_obj.file.name }}</p>
-                    <p class="mb-1"><strong>Size:</strong> {{ request_obj.file.get_size_display }}</p>
-                    <p class="mb-1"><strong>Type:</strong> {{ request_obj.file.mime_type }}</p>
-                    <p class="mb-1"><strong>Submitted by:</strong> {{ request_obj.editor.username }}</p>
-                    <p class="mb-0"><strong>Approved by:</strong> {{ request_obj.reviewed_by.username }} on {{ request_obj.reviewed_at|date:"Y-m-d H:i" }}</p>
-                </div>
-                
-                {% if request_obj.description %}
-                    <div class="alert alert-secondary">
-                        <h6>Editor's Description:</h6>
-                        <p class="mb-0">{{ request_obj.description }}</p>
-                    </div>
-                {% endif %}
-                
-                <form method="post" id="uploadForm" data-loading-message="Uploading video to YouTube... This may take several minutes.">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Video Title <span class="text-danger">*</span></label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="title" 
-                            name="title" 
-                            required 
-                            maxlength="100"
-                            placeholder="Enter a compelling title for your video"
-                            value="{{ request_obj.file.name|slice:':100' }}"
-                        >
-                        <small class="form-text text-muted">Maximum 100 characters</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Video Description <span class="text-danger">*</span></label>
-                        <textarea 
-                            class="form-control" 
-                            id="description" 
-                            name="description" 
-                            rows="6" 
-                            required
-                            maxlength="5000"
-                            placeholder="Provide a detailed description of your video content"
-                        >{{ request_obj.description }}</textarea>
-                        <small class="form-text text-muted">Maximum 5000 characters. This will be visible to viewers on YouTube.</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="privacy_status" class="form-label">Privacy Status <span class="text-danger">*</span></label>
-                        <select class="form-select" id="privacy_status" name="privacy_status" required>
-                            <option value="private" selected>Private - Only you and people you choose can watch</option>
-                            <option value="unlisted">Unlisted - Anyone with the link can watch</option>
-                            <option value="public">Public - Everyone can watch</option>
-                        </select>
-                        <small class="form-text text-muted">You can change this later in YouTube Studio</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Tags (Optional)</label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="tags" 
-                            name="tags" 
-                            placeholder="tag1, tag2, tag3"
-                        >
-                        <small class="form-text text-muted">Separate tags with commas. Tags help viewers find your video.</small>
-                    </div>
-                    
-                    <div class="alert alert-warning">
-                        <h6><i class="bi bi-exclamation-triangle"></i> Important Notes:</h6>
-                        <ul class="mb-0">
-                            <li>The upload process may take several minutes depending on file size</li>
-                            <li>Do not close this page until the upload is complete</li>
-                            <li>Make sure you have sufficient YouTube API quota available</li>
-                            <li>The video will be processed by YouTube after upload</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-danger btn-lg" id="uploadBtn">
-                            <i class="bi bi-youtube"></i> Upload to YouTube
-                        </button>
-                        <a href="{% url 'approvals:youtube_upload_list' %}" class="btn btn-outline-secondary">
-                            Cancel
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+      <div class="mb-4">
+        <a
+          href="{% url 'approvals:youtube_upload_list' %}"
+          class="btn btn-outline-secondary"
+        >
+          <i class="bi bi-arrow-left"></i> Back to Upload List
+        </a>
+      </div>
 
-<script>
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    const uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...';
-});
-</script>
+      <div class="card" style="margin-top: 10px">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0"><i class="bi bi-youtube"></i> Upload to YouTube</h4>
+        </div>
+        <div class="card-body" style="margin-top: 20px">
+          <div class="alert alert-info">
+            <h6><i class="bi bi-info-circle"></i> Video Information</h6>
+            <p class="mb-1">
+              <strong>File:</strong> {{ request_obj.file.name }}
+            </p>
+            <p class="mb-1">
+              <strong>Size:</strong> {{ request_obj.file.get_size_display }}
+            </p>
+            <p class="mb-1">
+              <strong>Type:</strong> {{ request_obj.file.mime_type }}
+            </p>
+            <p class="mb-1">
+              <strong>Submitted by:</strong> {{ request_obj.editor.username }}
+            </p>
+            <p class="mb-0">
+              <strong>Approved by:</strong> {{ request_obj.reviewed_by.username
+              }} on {{ request_obj.reviewed_at|date:"Y-m-d H:i" }}
+            </p>
+          </div>
+
+          {% if request_obj.description %}
+          <div class="alert alert-secondary">
+            <h6>Editor's Description:</h6>
+            <p class="mb-0">{{ request_obj.description }}</p>
+          </div>
+          {% endif %}
+
+          <form
+            method="post"
+            enctype="multipart/form-data"
+            id="uploadForm"
+            data-loading-message="Uploading video to YouTube... This may take several minutes."
+          >
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="title" class="form-label"
+                >Video Title <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                required
+                maxlength="100"
+                placeholder="Enter a compelling title for your video"
+                value="{{ request_obj.file.name|slice:':100' }}"
+              />
+              <small class="form-text text-muted">Maximum 100 characters</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label"
+                >Video Description <span class="text-danger">*</span></label
+              >
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                rows="6"
+                required
+                maxlength="5000"
+                placeholder="Provide a detailed description of your video content"
+              >
+{{ request_obj.description }}</textarea
+              >
+              <small class="form-text text-muted"
+                >Maximum 5000 characters. This will be visible to viewers on
+                YouTube.</small
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="privacy_status" class="form-label"
+                >Privacy Status <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select"
+                id="privacy_status"
+                name="privacy_status"
+                required
+              >
+                <option value="private" selected>
+                  Private - Only you and people you choose can watch
+                </option>
+                <option value="unlisted">
+                  Unlisted - Anyone with the link can watch
+                </option>
+                <option value="public">Public - Everyone can watch</option>
+              </select>
+              <small class="form-text text-muted"
+                >You can change this later in YouTube Studio</small
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="tags" class="form-label">Tags (Optional)</label>
+              <input
+                type="text"
+                class="form-control"
+                id="tags"
+                name="tags"
+                placeholder="tag1, tag2, tag3"
+              />
+              <small class="form-text text-muted"
+                >Separate tags with commas. Tags help viewers find your
+                video.</small
+              >
+            </div>
+
+            <!-- Thumbnail Upload Section -->
+            <div class="card mb-3">
+              <div class="card-header">
+                <h6 class="mb-0">
+                  <i class="bi bi-image"></i> Custom Thumbnail (Optional)
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">Thumbnail Source</label>
+                  {% for choice in thumbnail_form.thumbnail_source %}
+                  <div class="form-check">
+                    {{ choice.tag }}
+                    <label
+                      class="form-check-label"
+                      for="{{ choice.id_for_label }}"
+                    >
+                      {{ choice.choice_label }}
+                    </label>
+                  </div>
+                  {% endfor %}
+                  <small class="form-text text-muted"
+                    >{{ thumbnail_form.thumbnail_source.help_text }}</small
+                  >
+                </div>
+
+                <div
+                  id="thumbnail-upload-section"
+                  class="mb-3"
+                  style="display: none"
+                >
+                  {{ thumbnail_form.thumbnail_file }}
+                  <small class="form-text text-muted"
+                    >{{ thumbnail_form.thumbnail_file.help_text }}</small
+                  >
+                </div>
+
+                <div
+                  id="thumbnail-drive-section"
+                  class="mb-3"
+                  style="display: none"
+                >
+                  {{ thumbnail_form.drive_file_id }}
+                  <p class="text-muted">
+                    Select a thumbnail image from your Google Drive (feature
+                    coming soon)
+                  </p>
+                </div>
+
+                <div
+                  id="thumbnail-frame-section"
+                  class="mb-3"
+                  style="display: none"
+                >
+                  {{ thumbnail_form.video_frame_time }}
+                  <small class="form-text text-muted"
+                    >{{ thumbnail_form.video_frame_time.help_text }}</small
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-warning">
+              <h6>
+                <i class="bi bi-exclamation-triangle"></i> Important Notes:
+              </h6>
+              <ul class="mb-0">
+                <li>
+                  The upload process may take several minutes depending on file
+                  size
+                </li>
+                <li>Do not close this page until the upload is complete</li>
+                <li>
+                  Make sure you have sufficient YouTube API quota available
+                </li>
+                <li>The video will be processed by YouTube after upload</li>
+              </ul>
+            </div>
+
+            <div class="d-grid gap-2" style="margin-top: 20px">
+              <button
+                type="submit"
+                class="btn btn-danger btn-lg"
+                id="uploadBtn"
+              >
+                <i class="bi bi-youtube"></i> Upload to YouTube
+              </button>
+              <a
+                href="{% url 'approvals:youtube_upload_list' %}"
+                class="btn btn-outline-secondary"
+              >
+                Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document
+      .getElementById("uploadForm")
+      .addEventListener("submit", function (e) {
+        const uploadBtn = document.getElementById("uploadBtn");
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...';
+      });
+
+    // Show/hide thumbnail sections based on selected source
+    document
+      .querySelectorAll('input[name="thumbnail_source"]')
+      .forEach(function (radio) {
+        radio.addEventListener("change", function () {
+          document.getElementById("thumbnail-upload-section").style.display =
+            "none";
+          document.getElementById("thumbnail-drive-section").style.display =
+            "none";
+          document.getElementById("thumbnail-frame-section").style.display =
+            "none";
+
+          if (this.value === "upload") {
+            document.getElementById("thumbnail-upload-section").style.display =
+              "block";
+          } else if (this.value === "drive") {
+            document.getElementById("thumbnail-drive-section").style.display =
+              "block";
+          } else if (this.value === "video_frame") {
+            document.getElementById("thumbnail-frame-section").style.display =
+              "block";
+          }
+        });
+      });
+  </script>
+</div>
 {% endblock %}

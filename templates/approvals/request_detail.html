@@ -1,148 +1,520 @@
-{% extends 'base.html' %}
-
-{% block title %}{{ title }} - Creator Backoffice{% endblock %}
-
+{% extends 'base_sidebar.html' %} 
+{% block title %}{{ title }} - Creator Backoffice{% endblock %} 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="mb-3">
-            <a href="{% if is_editor %}{% url 'approvals:request_list' %}{% else %}{% url 'approvals:pending_approvals' %}{% endif %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3>Approval Request Details</h3>
-                    {% if request_obj.status == 'pending' %}
-                        <span class="badge bg-warning text-dark fs-6">Pending</span>
-                    {% elif request_obj.status == 'approved' %}
-                        <span class="badge bg-success fs-6">Approved</span>
-                    {% elif request_obj.status == 'rejected' %}
-                        <span class="badge bg-danger fs-6">Rejected</span>
-                    {% elif request_obj.status == 'uploaded' %}
-                        <span class="badge bg-info fs-6">Uploaded</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5>Request Information</h5>
-                        <table class="table table-sm">
-                            <tr>
-                                <th>Submitted by:</th>
-                                <td>{{ request_obj.editor.username }} ({{ request_obj.editor.get_role_display }})</td>
-                            </tr>
-                            <tr>
-                                <th>Submitted on:</th>
-                                <td>{{ request_obj.created_at|date:"Y-m-d H:i:s" }}</td>
-                            </tr>
-                            <tr>
-                                <th>Status:</th>
-                                <td>
-                                    <strong>{{ request_obj.get_status_display }}</strong>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <h5>File Information</h5>
-                        <table class="table table-sm">
-                            <tr>
-                                <th>File name:</th>
-                                <td>{{ request_obj.file.name }}</td>
-                            </tr>
-                            <tr>
-                                <th>File size:</th>
-                                <td>{{ request_obj.file.get_size_display }}</td>
-                            </tr>
-                            <tr>
-                                <th>File type:</th>
-                                <td>{{ request_obj.file.mime_type }}</td>
-                            </tr>
-                            <tr>
-                                <th>Modified:</th>
-                                <td>{{ request_obj.file.modified_time|date:"Y-m-d H:i" }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <h5>Description</h5>
-                    {% if request_obj.description %}
-                        <div class="alert alert-light">
-                            {{ request_obj.description|linebreaks }}
-                        </div>
-                    {% else %}
-                        <p class="text-muted"><em>No description provided</em></p>
-                    {% endif %}
-                </div>
-                
-                {% if request_obj.reviewed_by %}
-                    <div class="mb-4">
-                        <h5>Review Information</h5>
-                        <table class="table table-sm">
-                            <tr>
-                                <th>Reviewed by:</th>
-                                <td>{{ request_obj.reviewed_by.username }} ({{ request_obj.reviewed_by.get_role_display }})</td>
-                            </tr>
-                            <tr>
-                                <th>Reviewed on:</th>
-                                <td>{{ request_obj.reviewed_at|date:"Y-m-d H:i:s" }}</td>
-                            </tr>
-                        </table>
-                        
-                        {% if request_obj.status == 'rejected' and request_obj.rejection_reason %}
-                            <div class="alert alert-danger">
-                                <strong>Rejection Reason:</strong><br>
-                                {{ request_obj.rejection_reason|linebreaks }}
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endif %}
-                
-                {% if request_obj.youtube_video_id %}
-                    <div class="mb-4">
-                        <h5>YouTube Information</h5>
-                        <div class="alert alert-info">
-                            <strong>Video ID:</strong> {{ request_obj.youtube_video_id }}<br>
-                            <a href="https://www.youtube.com/watch?v={{ request_obj.youtube_video_id }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                                View on YouTube
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
-                
-                {% if request_obj.file.web_view_link %}
-                    <div class="mb-3">
-                        <a href="{{ request_obj.file.web_view_link }}" target="_blank" class="btn btn-outline-primary">
-                            <i class="bi bi-box-arrow-up-right"></i> View File in Google Drive
-                        </a>
-                    </div>
-                {% endif %}
-                
-                {% if user.role in 'manager,creator' and request_obj.status == 'pending' %}
-                    <div class="mt-4 pt-4 border-top">
-                        <h5 class="mb-3">Review Actions</h5>
-                        <div class="d-flex gap-2">
-                            <form method="post" action="{% url 'approvals:approve_request' request_obj.pk %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to approve this request?')">
-                                    <i class="bi bi-check-circle"></i> Approve Request
-                                </button>
-                            </form>
-                            <a href="{% url 'approvals:reject_request' request_obj.pk %}" class="btn btn-danger">
-                                <i class="bi bi-x-circle"></i> Reject Request
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
+
+<div id="view-approvals-detail" class="view-section">
+  <!-- Back Button -->
+  <div style="margin-bottom: var(--space-5)">
+    <a
+      href="{% if is_editor %}{% url 'approvals:request_list' %}{% else %}{% url 'approvals:pending_approvals' %}{% endif %}"
+      class="btn btn-outline"
+    >
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to List</span>
+    </a>
+  </div>
+
+  <!-- Main Detail Card -->
+  <div class="card">
+    <div class="card-header">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: var(--space-3);
+        "
+      >
+        <h3 style="margin: 0">Approval Request Details</h3>
+        {% if request_obj.status == 'pending' %}
+        <span
+          class="card-badge card-badge-warning"
+          style="
+            font-size: var(--text-sm);
+            padding: var(--space-2) var(--space-4);
+          "
+          >Pending</span
+        >
+        {% elif request_obj.status == 'approved' %}
+        <span
+          class="card-badge card-badge-success"
+          style="
+            font-size: var(--text-sm);
+            padding: var(--space-2) var(--space-4);
+          "
+          >Approved</span
+        >
+        {% elif request_obj.status == 'rejected' %}
+        <span
+          class="card-badge card-badge-error"
+          style="
+            font-size: var(--text-sm);
+            padding: var(--space-2) var(--space-4);
+          "
+          >Rejected</span
+        >
+        {% elif request_obj.status == 'uploaded' %}
+        <span
+          class="card-badge card-badge-info"
+          style="
+            font-size: var(--text-sm);
+            padding: var(--space-2) var(--space-4);
+          "
+          >Uploaded</span
+        >
+        {% endif %}
+      </div>
     </div>
+
+    <div class="card-body" style="padding: var(--space-6)">
+      <!-- Information Grid -->
+      <div
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: var(--space-6);
+          margin-bottom: var(--space-6);
+        "
+      >
+        <!-- Request Information -->
+        <div>
+          <h5
+            style="
+              font-family: var(--font-display);
+              font-weight: var(--font-bold);
+              text-transform: uppercase;
+              margin-bottom: var(--space-4);
+              color: var(--ink);
+              font-size: var(--text-lg);
+              border-bottom: 2px solid var(--border-light);
+              padding-bottom: var(--space-2);
+            "
+          >
+            Request Information
+          </h5>
+          <div
+            style="display: flex; flex-direction: column; gap: var(--space-3)"
+          >
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                Submitted by
+              </div>
+              <div style="font-size: var(--text-base); color: var(--ink)">
+                {{ request_obj.editor.username }}
+                <span style="color: var(--gray-600)"
+                  >({{ request_obj.editor.get_role_display }})</span
+                >
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                Submitted on
+              </div>
+              <div style="font-size: var(--text-base); color: var(--ink)">
+                {{ request_obj.created_at|date:"Y-m-d H:i:s" }}
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                Status
+              </div>
+              <div
+                style="
+                  font-size: var(--text-base);
+                  font-weight: var(--font-semibold);
+                  color: var(--ink);
+                "
+              >
+                {{ request_obj.get_status_display }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Information -->
+        <div>
+          <h5
+            style="
+              font-family: var(--font-display);
+              font-weight: var(--font-bold);
+              text-transform: uppercase;
+              margin-bottom: var(--space-4);
+              color: var(--ink);
+              font-size: var(--text-lg);
+              border-bottom: 2px solid var(--border-light);
+              padding-bottom: var(--space-2);
+            "
+          >
+            File Information
+          </h5>
+          <div
+            style="display: flex; flex-direction: column; gap: var(--space-3)"
+          >
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                File name
+              </div>
+              <div
+                style="
+                  font-size: var(--text-base);
+                  color: var(--ink);
+                  word-break: break-word;
+                "
+              >
+                {{ request_obj.file.name }}
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                File size
+              </div>
+              <div style="font-size: var(--text-base); color: var(--ink)">
+                {{ request_obj.file.get_size_display }}
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                File type
+              </div>
+              <div style="font-size: var(--text-base); color: var(--ink)">
+                {{ request_obj.file.mime_type }}
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  font-weight: var(--font-semibold);
+                  text-transform: uppercase;
+                  color: var(--gray-600);
+                  margin-bottom: var(--space-1);
+                "
+              >
+                Modified
+              </div>
+              <div style="font-size: var(--text-base); color: var(--ink)">
+                {{ request_obj.file.modified_time|date:"Y-m-d H:i" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Section -->
+      <div style="margin-bottom: var(--space-6)">
+        <h5
+          style="
+            font-family: var(--font-display);
+            font-weight: var(--font-bold);
+            text-transform: uppercase;
+            margin-bottom: var(--space-4);
+            color: var(--ink);
+            font-size: var(--text-lg);
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: var(--space-2);
+          "
+        >
+          Description
+        </h5>
+        {% if request_obj.description %}
+        <div
+          style="
+            padding: var(--space-4);
+            background: var(--gray-50);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            color: var(--gray-700);
+            font-size: var(--text-base);
+            line-height: var(--leading-relaxed);
+          "
+        >
+          {{ request_obj.description|linebreaks }}
+        </div>
+        {% else %}
+        <p
+          style="
+            color: var(--gray-500);
+            font-style: italic;
+            font-size: var(--text-base);
+            margin: 0;
+          "
+        >
+          No description provided
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Review Information (if reviewed) -->
+      {% if request_obj.reviewed_by %}
+      <div style="margin-bottom: var(--space-6)">
+        <h5
+          style="
+            font-family: var(--font-display);
+            font-weight: var(--font-bold);
+            text-transform: uppercase;
+            margin-bottom: var(--space-4);
+            color: var(--ink);
+            font-size: var(--text-lg);
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: var(--space-2);
+          "
+        >
+          Review Information
+        </h5>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+          "
+        >
+          <div>
+            <div
+              style="
+                font-size: var(--text-xs);
+                font-weight: var(--font-semibold);
+                text-transform: uppercase;
+                color: var(--gray-600);
+                margin-bottom: var(--space-1);
+              "
+            >
+              Reviewed by
+            </div>
+            <div style="font-size: var(--text-base); color: var(--ink)">
+              {{ request_obj.reviewed_by.username }}
+              <span style="color: var(--gray-600)"
+                >({{ request_obj.reviewed_by.get_role_display }})</span
+              >
+            </div>
+          </div>
+          <div>
+            <div
+              style="
+                font-size: var(--text-xs);
+                font-weight: var(--font-semibold);
+                text-transform: uppercase;
+                color: var(--gray-600);
+                margin-bottom: var(--space-1);
+              "
+            >
+              Reviewed on
+            </div>
+            <div style="font-size: var(--text-base); color: var(--ink)">
+              {{ request_obj.reviewed_at|date:"Y-m-d H:i:s" }}
+            </div>
+          </div>
+        </div>
+
+        {% if request_obj.status == 'rejected' and request_obj.rejection_reason
+        %}
+        <div
+          style="
+            padding: var(--space-4);
+            background: rgba(255, 59, 48, 0.1);
+            border: 2px solid var(--accent-red);
+            border-left: 4px solid var(--accent-red);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-4);
+          "
+        >
+          <div
+            style="
+              font-weight: var(--font-bold);
+              color: var(--accent-red);
+              margin-bottom: var(--space-2);
+              font-size: var(--text-base);
+            "
+          >
+            Rejection Reason:
+          </div>
+          <div
+            style="
+              color: var(--ink);
+              font-size: var(--text-base);
+              line-height: var(--leading-relaxed);
+            "
+          >
+            {{ request_obj.rejection_reason|linebreaks }}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- YouTube Information (if uploaded) -->
+      {% if request_obj.youtube_video_id %}
+      <div style="margin-bottom: var(--space-6)">
+        <h5
+          style="
+            font-family: var(--font-display);
+            font-weight: var(--font-bold);
+            text-transform: uppercase;
+            margin-bottom: var(--space-4);
+            color: var(--ink);
+            font-size: var(--text-lg);
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: var(--space-2);
+          "
+        >
+          YouTube Information
+        </h5>
+        <div
+          style="
+            padding: var(--space-4);
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid var(--accent-blue);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: var(--radius-md);
+          "
+        >
+          <div style="margin-bottom: var(--space-3)">
+            <div
+              style="
+                font-size: var(--text-xs);
+                font-weight: var(--font-semibold);
+                text-transform: uppercase;
+                color: var(--gray-600);
+                margin-bottom: var(--space-1);
+              "
+            >
+              Video ID
+            </div>
+            <div
+              style="
+                font-family: var(--font-mono);
+                font-size: var(--text-base);
+                color: var(--ink);
+              "
+            >
+              {{ request_obj.youtube_video_id }}
+            </div>
+          </div>
+          <a
+            href="https://www.youtube.com/watch?v={{ request_obj.youtube_video_id }}"
+            target="_blank"
+            class="btn btn-blue btn-sm"
+          >
+            <i class="fab fa-youtube"></i>
+            <span>View on YouTube</span>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: var(--space-3); flex-wrap: wrap">
+        {% if request_obj.file.web_view_link %}
+        <a
+          href="{{ request_obj.file.web_view_link }}"
+          target="_blank"
+          class="btn btn-outline-purple"
+        >
+          <i class="fab fa-google-drive"></i>
+          <span>View File in Google Drive</span>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Review Actions (Manager/Creator only for pending requests) -->
+      {% if user.role in 'manager,creator' and request_obj.status == 'pending'
+      %}
+      <div
+        style="
+          margin-top: var(--space-6);
+          padding-top: var(--space-6);
+          border-top: 2px solid var(--border-light);
+        "
+      >
+        <h5
+          style="
+            font-family: var(--font-display);
+            font-weight: var(--font-bold);
+            text-transform: uppercase;
+            margin-bottom: var(--space-4);
+            color: var(--ink);
+            font-size: var(--text-lg);
+          "
+        >
+          Review Actions
+        </h5>
+        <div style="display: flex; gap: var(--space-3); flex-wrap: wrap">
+          <form
+            method="post"
+            action="{% url 'approvals:approve_request' request_obj.pk %}"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="btn btn-green"
+              onclick="return confirm('Are you sure you want to approve this request?')"
+            >
+              <i class="fas fa-check-circle"></i>
+              <span>Approve Request</span>
+            </button>
+          </form>
+          <a
+            href="{% url 'approvals:reject_request' request_obj.pk %}"
+            class="btn btn-red"
+          >
+            <i class="fas fa-times-circle"></i>
+            <span>Reject Request</span>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
+
 {% endblock %}

@@ -1,0 +1,326 @@
+{% extends 'base_sidebar.html' %}
+
+{% block title %}Best Time to Post - CreatorFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recommendation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+    
+    .recommendation-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-lg);
+        text-align: center;
+        transition: var(--transition-smooth);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .recommendation-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .recommendation-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 8px 8px 0 rgba(220, 38, 38, 0.2);
+        border-color: var(--accent-red);
+    }
+    
+    .rank-badge {
+        position: absolute;
+        top: var(--space-md);
+        right: var(--space-md);
+        width: 50px;
+        height: 50px;
+        background: var(--accent-red);
+        color: var(--paper);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 900;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+    
+    .time-icon {
+        font-size: 3rem;
+        color: var(--accent-red);
+        margin-bottom: var(--space-md);
+    }
+    
+    .day-label {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .time-label {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--accent-red);
+        margin-bottom: var(--space-md);
+    }
+    
+    .engagement-meter {
+        width: 100%;
+        height: 8px;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .engagement-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-red-light));
+        border-radius: 4px;
+        transition: width 1s ease-out;
+    }
+    
+    .engagement-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-medium);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .engagement-value {
+        font-family: var(--font-display);
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--accent-red);
+    }
+    
+    .confidence-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-top: var(--space-sm);
+    }
+    
+    .confidence-high {
+        background: #10B981;
+        color: var(--paper);
+    }
+    
+    .confidence-medium {
+        background: #F59E0B;
+        color: var(--paper);
+    }
+    
+    .confidence-low {
+        background: var(--gray-medium);
+        color: var(--paper);
+    }
+    
+    .info-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+    
+    .info-card h3 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: var(--space-sm);
+        color: var(--ink);
+    }
+    
+    .info-card p {
+        font-size: 0.875rem;
+        color: var(--gray-medium);
+        margin-bottom: 0;
+    }
+    
+    .tip-card {
+        background: var(--gray-wash);
+        border-left: 4px solid var(--accent-red);
+        border-radius: 8px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-sm);
+    }
+    
+    .tip-icon {
+        color: var(--accent-red);
+        margin-right: var(--space-xs);
+    }
+    
+    .tip-text {
+        font-size: 0.875rem;
+        color: var(--gray-dark);
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="view-posting-recommendations" class="view-section">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-clock"></i> Best Time to Post</h1>
+            <p class="text-muted">Optimize your upload schedule for maximum engagement</p>
+        </div>
+    </div>
+
+<!-- Top 3 Recommendations -->
+{% if recommendations %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-star"></i> Top 3 Recommended Time Slots</h2>
+        <p class="text-muted">Based on your audience activity patterns and historical performance</p>
+    </div>
+</div>
+
+<div class="recommendation-grid">
+    {% for rec in recommendations %}
+    <div class="recommendation-card">
+        <div class="rank-badge">{{ forloop.counter }}</div>
+        
+        <div class="time-icon">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        
+        <div class="day-label">{{ rec.day }}</div>
+        <div class="time-label">{{ rec.time }}</div>
+        
+        <div class="engagement-meter">
+            <div class="engagement-fill" style="width: {{ rec.expected_engagement }}%"></div>
+        </div>
+        
+        <div class="engagement-label">Expected Engagement</div>
+        <div class="engagement-value">{{ rec.expected_engagement|floatformat:1 }}%</div>
+        
+        {% if rec.confidence >= 0.8 %}
+        <span class="confidence-badge confidence-high">
+            <i class="fas fa-check-circle"></i> High Confidence
+        </span>
+        {% elif rec.confidence >= 0.5 %}
+        <span class="confidence-badge confidence-medium">
+            <i class="fas fa-info-circle"></i> Medium Confidence
+        </span>
+        {% else %}
+        <span class="confidence-badge confidence-low">
+            <i class="fas fa-question-circle"></i> Low Confidence
+        </span>
+        {% endif %}
+        
+        {% if rec.reason %}
+        <p class="mt-3 mb-0 text-muted" style="font-size: 0.8125rem;">
+            <i class="fas fa-info-circle"></i> {{ rec.reason }}
+        </p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Additional Information -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="info-card">
+            <h3><i class="fas fa-lightbulb"></i> How It Works</h3>
+            <p>
+                Our algorithm analyzes your historical video performance data, including views, 
+                engagement rates, and audience activity patterns. We identify the times when your 
+                audience is most active and likely to engage with your content.
+            </p>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="info-card">
+            <h3><i class="fas fa-chart-line"></i> Confidence Levels</h3>
+            <p>
+                Confidence levels indicate how reliable each recommendation is based on the amount 
+                of historical data available. Higher confidence means more data supports this time slot 
+                as optimal for your channel.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Tips -->
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-3"><i class="fas fa-tips"></i> Posting Tips</h3>
+        
+        <div class="tip-card">
+            <p class="tip-text">
+                <i class="fas fa-check tip-icon"></i>
+                <strong>Consistency is key:</strong> Try to maintain a regular posting schedule so your audience knows when to expect new content.
+            </p>
+        </div>
+        
+        <div class="tip-card">
+            <p class="tip-text">
+                <i class="fas fa-check tip-icon"></i>
+                <strong>Test and iterate:</strong> Experiment with different time slots and track performance to refine your strategy.
+            </p>
+        </div>
+        
+        <div class="tip-card">
+            <p class="tip-text">
+                <i class="fas fa-check tip-icon"></i>
+                <strong>Consider time zones:</strong> If you have a global audience, think about posting at times that work for multiple regions.
+            </p>
+        </div>
+        
+        <div class="tip-card">
+            <p class="tip-text">
+                <i class="fas fa-check tip-icon"></i>
+                <strong>Quality over timing:</strong> While timing helps, great content will perform well regardless of when it's posted.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-clock"></i>
+    </div>
+    <h3 class="empty-state-title">No Recommendations Available</h3>
+    <p class="empty-state-description">
+        We need more historical data to generate personalized posting recommendations. 
+        Keep uploading videos and check back soon!
+    </p>
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animate engagement meters on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const fills = document.querySelectorAll('.engagement-fill');
+        fills.forEach(fill => {
+            const width = fill.style.width;
+            fill.style.width = '0';
+            setTimeout(() => {
+                fill.style.width = width;
+            }, 100);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,557 @@
+{% extends 'base_sidebar.html' %}
+
+{% block title %}Analytics Dashboard - CreatorFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+    
+    .metric-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        text-align: center;
+        transition: var(--transition-smooth);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+        opacity: 0;
+        transition: var(--transition-fast);
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 4px 4px 0 rgba(220, 38, 38, 0.2);
+        border-color: var(--accent-red);
+    }
+    
+    .metric-card:hover::before {
+        opacity: 1;
+    }
+    
+    .metric-icon {
+        font-size: 2rem;
+        color: var(--accent-red);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .metric-value {
+        font-family: var(--font-display);
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 900;
+        color: var(--ink);
+        line-height: 1;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .metric-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-medium);
+    }
+    
+    .metric-change {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: var(--space-xs);
+    }
+    
+    .metric-change.positive {
+        color: #10B981;
+    }
+    
+    .metric-change.negative {
+        color: var(--accent-red);
+    }
+    
+    .chart-container {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+        position: relative;
+    }
+    
+    .chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--accent-red);
+    }
+    
+    .chart-title {
+        font-family: var(--font-display);
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: var(--space-md);
+        color: var(--ink);
+    }
+    
+    .period-selector {
+        display: flex;
+        gap: var(--space-xs);
+        margin-bottom: var(--space-md);
+        flex-wrap: wrap;
+    }
+    
+    .period-btn {
+        padding: 6px 16px;
+        border: 2px solid var(--accent-red-border);
+        background: var(--paper);
+        color: var(--gray-dark);
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    
+    .period-btn:hover {
+        border-color: var(--accent-red);
+        color: var(--accent-red);
+    }
+    
+    .period-btn.active {
+        background: var(--accent-red);
+        color: var(--paper);
+        border-color: var(--accent-red);
+    }
+    
+    .test-card {
+        background: var(--paper);
+        border: 2px solid var(--accent-red-border);
+        border-radius: 12px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-sm);
+        transition: var(--transition-smooth);
+    }
+    
+    .test-card:hover {
+        transform: translateX(4px);
+        border-color: var(--accent-red);
+    }
+    
+    .test-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .test-title {
+        font-weight: 700;
+        color: var(--ink);
+        font-size: 0.9375rem;
+    }
+    
+    .test-status {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-weight: 700;
+    }
+    
+    .test-status.active {
+        background: #10B981;
+        color: var(--paper);
+    }
+    
+    .test-meta {
+        font-size: 0.8125rem;
+        color: var(--gray-medium);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="view-analytics-dashboard" class="view-section">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-chart-line"></i> Analytics Dashboard</h1>
+            <p class="text-muted">Track your YouTube channel performance and insights</p>
+        </div>
+    </div>
+
+{% if api_error %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-exclamation-circle"></i>
+    </div>
+    <h3 class="empty-state-title">YouTube API Quota Exceeded</h3>
+    <p class="empty-state-description">
+        The YouTube Analytics API has reached its daily quota limit. This is a temporary limitation.
+    </p>
+    <p class="empty-state-description">
+        <strong>What you can do:</strong>
+    </p>
+    <ul style="text-align: left; max-width: 500px; margin: 0 auto var(--space-md);">
+        <li>Wait a few hours and try again (quotas typically reset at midnight Pacific Time)</li>
+        <li>Check back tomorrow when the quota resets</li>
+        <li>Contact your administrator if this issue persists</li>
+    </ul>
+    <div class="alert alert-info" style="max-width: 600px; margin: 0 auto var(--space-md);">
+        <i class="fas fa-info-circle"></i> <strong>Technical Details:</strong> {{ error }}
+    </div>
+    <a href="{% url 'analytics:dashboard' %}" class="btn btn-primary">
+        <i class="fas fa-sync"></i> Try Again
+    </a>
+</div>
+{% elif error %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+</div>
+{% elif not has_youtube %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fab fa-youtube"></i>
+    </div>
+    <h3 class="empty-state-title">Connect Your YouTube Account</h3>
+    <p class="empty-state-description">
+        To view analytics, please connect your YouTube account in the Integrations section.
+    </p>
+    <a href="{% url 'integrations:dashboard' %}" class="btn btn-primary">
+        <i class="fas fa-plug"></i> Go to Integrations
+    </a>
+</div>
+{% else %}
+
+<!-- Time Period Selector -->
+<div class="period-selector">
+    <a href="?period=7" class="period-btn {% if time_period == 7 %}active{% endif %}">7 Days</a>
+    <a href="?period=30" class="period-btn {% if time_period == 30 %}active{% endif %}">30 Days</a>
+    <a href="?period=90" class="period-btn {% if time_period == 90 %}active{% endif %}">90 Days</a>
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-eye"></i>
+        </div>
+        <div class="metric-value">{{ total_views|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Total Views</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="metric-value">{{ subscriber_count|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Subscribers</div>
+        {% if net_subscribers != 0 %}
+        <div class="metric-change {% if net_subscribers > 0 %}positive{% else %}negative{% endif %}">
+            <i class="fas fa-arrow-{% if net_subscribers > 0 %}up{% else %}down{% endif %}"></i>
+            {{ net_subscribers|floatformat:0 }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="metric-value">{{ total_watch_time|default:0|floatformat:0 }}</div>
+        <div class="metric-label">Watch Time (min)</div>
+    </div>
+    
+    <div class="metric-card">
+        <div class="metric-icon">
+            <i class="fas fa-heart"></i>
+        </div>
+        <div class="metric-value">{{ engagement_rate|default:0|floatformat:2 }}%</div>
+        <div class="metric-label">Engagement Rate</div>
+    </div>
+</div>
+
+<!-- Performance Trends -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-area"></i> Views Trend</h3>
+            <canvas id="viewsChart" height="200"></canvas>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-line"></i> Watch Time Trend</h3>
+            <canvas id="watchTimeChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="chart-container">
+            <h3 class="chart-title"><i class="fas fa-chart-bar"></i> Engagement Trend</h3>
+            <canvas id="engagementChart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Active A/B Tests Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-flask"></i> Active A/B Tests
+            </div>
+            <div class="card-body">
+                {% if active_tests %}
+                    {% for test in active_tests %}
+                    <div class="test-card">
+                        <div class="test-header">
+                            <span class="test-title">{{ test.video_title }}</span>
+                            <span class="test-status active">Active</span>
+                        </div>
+                        <div class="test-meta">
+                            <i class="fas fa-flask"></i> {{ test.test_type|title }} Test
+                            · <i class="fas fa-chart-line"></i> {{ test.progress }}% Complete
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <h4 class="empty-state-title">No Active Tests</h4>
+                    <p class="empty-state-description">
+                        Start an A/B test to optimize your video performance
+                    </p>
+                    <a href="{% url 'abtesting:test_list' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create A/B Test
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if has_youtube and not error and not api_error %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Chart.js configuration
+    Chart.defaults.font.family = "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.color = '#6B7280';
+    
+    const chartColors = {
+        primary: '#DC2626',
+        secondary: '#EF4444',
+        success: '#10B981',
+        grid: 'rgba(0, 0, 0, 0.05)'
+    };
+    
+    // Views Chart
+    const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+    new Chart(viewsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_data.dates|safe }},
+            datasets: [{
+                label: 'Views',
+                data: {{ trend_data.views|safe }},
+                borderColor: chartColors.primary,
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: chartColors.primary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Watch Time Chart
+    const watchTimeCtx = document.getElementById('watchTimeChart').getContext('2d');
+    new Chart(watchTimeCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_data.dates|safe }},
+            datasets: [{
+                label: 'Watch Time (minutes)',
+                data: {{ trend_data.watch_time|safe }},
+                borderColor: chartColors.secondary,
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: chartColors.secondary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' min';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Engagement Chart
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    new Chart(engagementCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ trend_data.dates|safe }},
+            datasets: [{
+                label: 'Engagement Rate (%)',
+                data: {{ trend_data.engagement|safe }},
+                backgroundColor: chartColors.success,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Engagement: ' + context.parsed.y.toFixed(2) + '%';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: chartColors.grid
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(1) + '%';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}
