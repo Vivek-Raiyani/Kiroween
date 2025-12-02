@@ -172,3 +172,4 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@creatorbackoffice.com')
 
+print(f"{EMAIL_HOST_USER} -- {EMAIL_HOST_PASSWORD}")
