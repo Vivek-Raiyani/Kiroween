@@ -266,14 +266,21 @@ Creator Backoffice Platform Team
 """
     
     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@creatorbackoffice.com')
-    
-    send_mail(
-        subject,
-        message,
-        from_email,
-        [email],
-        fail_silently=False,
-    )
+    print("-"*40)
+    print("Starting enail sending process for new user ")
+    try:
+        send_mail(
+            subject,
+            message,
+            from_email,
+            [email],
+            fail_silently=False,
+        )
+        
+        print("Email send sucessfuull right now")
+    except Exception as e:
+        print("Error occurred while sending email:", e)
+
 
 
 @login_required
