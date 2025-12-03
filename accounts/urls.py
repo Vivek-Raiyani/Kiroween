@@ -12,4 +12,6 @@ urlpatterns = [
     path('team/add/', views.add_team_member_view, name='add_team_member'),
     path('team/remove/<int:user_id>/', views.remove_team_member_view, name='remove_team_member'),
     path('permission-denied/', views.permission_denied_view, name='permission_denied'),
+
+    path('test-email/', views.test_email_view, name='test_email'),
 ]

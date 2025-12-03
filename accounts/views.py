@@ -291,3 +291,42 @@ def permission_denied_view(request):
         'user_role': request.user.get_role_display(),
     }
     return render(request, 'accounts/permission_denied.html', context, status=403)
+
+
+# accounts/views.py
+# accounts/views.py
+import logging
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.conf import settings
+
+# Create a logger for this module
+logger = logging.getLogger(__name__)
+
+def test_email_view(request):
+    """
+    Test if Django email is working.
+    Sends a test email to the address specified in the 'to' GET parameter.
+    Logs each step and any errors for debugging.
+    """
+    to_email = 'vivek16903@gmail.com'
+    subject = "Render Email Test"
+    message = "Hello! This is a test email from your Django app running on Render."
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER)
+
+    logger.info("Starting test_email_view")
+    logger.info(f"From: {from_email}, To: {to_email}, Subject: {subject}")
+
+    try:
+        result = send_mail(
+            subject,
+            message,
+            from_email,
+            [to_email],
+            fail_silently=False,
+        )
+        logger.info(f"send_mail returned: {result}")
+        return HttpResponse(f"Test email sent successfully to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send test email: {e}", exc_info=True)
+        return HttpResponse(f"Failed to send test email: {e}")
