@@ -141,3 +141,18 @@ python manage.py collectstatic
 ## License
 
 This project is proprietary and confidential.
+
+
+## Email Setting
+
+Currently the app can work without email configuration for adding team member 
+
+To use mail for team member adding follow below steps:
+`
+accounts/views.py
+
+method : add_team_member_view
+
+uncomment below line:
+send_invitation_email(email, invitation_url, creator, role)
+`

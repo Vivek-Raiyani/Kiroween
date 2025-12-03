@@ -112,7 +112,11 @@ def create_abtest(request):
             variants_data.append(variant)
         
         # Create test using engine
-        engine = ABTestEngine(user=request.user)
+        user_requesting = request.user
+        if user_requesting.role == 'manager':
+            engine = ABTestEngine(user=request.user.creator)
+        else:
+            engine = ABTestEngine(user=request.user)
         test, error = engine.create_test(
             video_id=video_id,
             video_title=video_title,
