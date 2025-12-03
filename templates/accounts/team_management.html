@@ -45,37 +45,37 @@
                 </tr>
               </thead>
               <tbody>
-                {% for invitation in pending_invitations %}
-                <tr>
-                  <td>{{ invitation.email }}</td>
-                  <td>
-                    <span class="badge bg-secondary"
-                      >{{ invitation.get_role_display }}</span
-                    >
-                  </td>
-                  <td>{{ invitation.date_joined|date:"M d, Y" }}</td>
-                  <td>
-                    <form
-                      method="post"
-                      action="{% url 'accounts:remove_team_member' invitation.id %}"
-                      style="display: inline"
-                    >
-                      {% csrf_token %}
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-danger confirm-action"
-                        data-confirm-title="Cancel Invitation"
-                        data-confirm-message="Are you sure you want to cancel this invitation?"
-                        data-confirm-text="Cancel Invitation"
-                        data-cancel-text="Keep Invitation"
-                      >
-                        <i class="bi bi-x-circle"></i> Cancel
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
+  {% for invitation in pending_invitations %}
+  <tr>
+    <td>{{ invitation.email }}</td>
+    <td>
+      <span class="badge bg-secondary">{{ invitation.role }}</span>
+    </td>
+    <td>
+    <div class="input-group">
+      <input type="text" class="form-control" value="{{ invitation.invitation_url }}" readonly>
+      <button class="btn btn-outline-secondary copy-btn" type="button"
+              onclick="navigator.clipboard.writeText('{{ invitation.invitation_url }}')">
+        Copy
+      </button>
+    </div>
+</td>
+    <td>
+      <form method="post" action="{% url 'accounts:remove_team_member' invitation.id %}" style="display: inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-danger confirm-action"
+                data-confirm-title="Cancel Invitation"
+                data-confirm-message="Are you sure you want to cancel this invitation?"
+                data-confirm-text="Cancel Invitation"
+                data-cancel-text="Keep Invitation">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
             </table>
           </div>
         </div>
@@ -210,4 +210,33 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const copyButtons = document.querySelectorAll(".copy-btn");
+
+    copyButtons.forEach(btn => {
+      btn.addEventListener("click", function() {
+        const url = this.getAttribute("data-url");
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(url).then(() => {
+          const originalText = this.innerText;
+          this.innerText = "Copied!";
+          this.classList.add("btn-success"); // optional green feedback
+
+          // Revert back after 1.5 seconds
+          setTimeout(() => {
+            this.innerText = originalText;
+            this.classList.remove("btn-success");
+          }, 1500);
+        }).catch(err => {
+          console.error("Failed to copy: ", err);
+        });
+      });
+    });
+  });
+</script>
 {% endblock %}

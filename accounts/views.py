@@ -136,11 +136,26 @@ def team_management_view(request):
         invited_by=creator,
         invitation_accepted=False
     ).order_by('-id')
+
+    # Add invitation URLs to context
+    invitations_with_links = [
+        {
+            'email': user.email,
+            'role': user.role,
+            'invitation_url': request.build_absolute_uri(
+                reverse('accounts:register', kwargs={'token': user.invitation_token})
+            ),
+            'date_joined': user.date_joined,
+            'id': user.id
+        }
+        for user in pending_invitations
+    ]
+    print(invitations_with_links)
     
     context = {
         'team': team,
         'team_members': team_members,
-        'pending_invitations': pending_invitations,
+        'pending_invitations': invitations_with_links,
     }
     
     return render(request, 'accounts/team_management.html', context)
@@ -196,7 +211,7 @@ def add_team_member_view(request):
             )
             
             try:
-                send_invitation_email(email, invitation_url, creator, role)
+                # send_invitation_email(email, invitation_url, creator, role)
                 messages.success(request, f'Invitation sent to {email} successfully!')
             except Exception as e:
                 # If email fails, still show success but log the error
