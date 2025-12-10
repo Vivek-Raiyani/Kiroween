@@ -138,9 +138,7 @@ python manage.py collectstatic
 - **Database**: SQLite (development), PostgreSQL (production)
 - **Authentication**: Django built-in auth with custom User model
 
-## License
 
-This project is proprietary and confidential.
 
 
 ## Email Setting
@@ -156,3 +154,11 @@ method : add_team_member_view
 uncomment below line:
 send_invitation_email(email, invitation_url, creator, role)
 `
+
+# License
+
+MIT License
+
+Copyright (c) 2025 Vivek
+
+Permission is hereby granted, free of charge, to any person
