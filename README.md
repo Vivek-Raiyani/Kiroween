@@ -64,6 +64,7 @@ creator_backoffice/
 
 6. Run migrations:
    ```bash
+   python manage.py makemigrations
    python manage.py migrate
    ```
 
@@ -116,19 +117,6 @@ If you prefer using one OAuth client for both services:
 
 **Note**: When using a single OAuth client, disconnecting one service will not revoke the token to avoid breaking the other service. Users can revoke access from their Google Account settings if needed.
 
-## Development
-
-### Running Tests
-
-```bash
-python manage.py test
-```
-
-### Collecting Static Files
-
-```bash
-python manage.py collectstatic
-```
 
 ## Technology Stack
 
